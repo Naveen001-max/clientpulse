@@ -1,0 +1,27 @@
+{
+  "name": "clientpulse",
+  "version": "1.0.0",
+  "description": "AI-powered CRM for freelancers — track clients, invoices, and auto-draft follow-ups with Claude AI",
+  "private": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": ["crm", "freelancer", "ai", "client-management", "invoice", "react", "saas"],
+  "author": "Naveen001-max",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Naveen001-max/clientpulse.git"
+  },
+  "homepage": "https://github.com/Naveen001-max/clientpulse"
+}
