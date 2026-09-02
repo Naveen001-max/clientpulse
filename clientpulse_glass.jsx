@@ -135,7 +135,7 @@ const PLANS = {
       "Email templates (unlimited)","Priority support",
     ],
     locked:["5 team seats","White-label / custom branding"],
-    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_PRO_ID",
+    checkoutUrl:"https://clientpulse-nsin.lemonsqueezy.com/checkout/buy/33827a23-031c-4bf3-baf9-0d5383084e1c",
   },
   agency: {
     id:"agency", name:"Agency", price:79, label:"$79/month", color:C.purple,
@@ -153,7 +153,7 @@ const PLANS = {
       "Dedicated account manager","Custom onboarding call",
     ],
     locked:[],
-    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_AGENCY_ID",
+    checkoutUrl:"https://clientpulse-nsin.lemonsqueezy.com/checkout/buy/fae38b37-0eaf-4f4d-aae8-9f497fbb8af8",
   },
 };
 const planOrder={free:0,pro:1,agency:2};
