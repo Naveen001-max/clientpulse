@@ -1,5 +1,21 @@
 import { useState, useEffect, useRef, useCallback, useReducer, useMemo } from "react";
 
+// ─── Supabase OAuth callback handler ───────────────────────
+// When Google redirects back, Supabase puts the session in the URL hash.
+// This runs once on load and extracts it.
+const handleSupabaseCallback = () => {
+  const hash = window.location.hash;
+  if(!hash.includes("access_token")) return null;
+  const params = new URLSearchParams(hash.replace("#",""));
+  const token = params.get("access_token");
+  const name  = params.get("user_metadata")?.full_name || "Google User";
+  const email = params.get("email") || "user@gmail.com";
+  if(!token) return null;
+  const auth = { id:"g_"+btoa(email).slice(0,12), email, name, plan:"free", provider:"google" };
+  window.history.replaceState({}, document.title, window.location.pathname); // clean URL
+  return auth;
+};
+
 // ═══════════════════════════════════════════════════════════════
 // SECURITY MODULE
 // All auth logic hardened — passwords hashed, sessions signed,
@@ -743,21 +759,9 @@ function AuthScreen({onAuth}){
   };
 
   const googleLogin=()=>{
-    // Supabase Google OAuth — replace SUPABASE_URL with your project URL
-    // Set up: supabase.com → Auth → Providers → Google → enable
-    const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+    const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co"; // ← paste your URL here
     const redirectUrl = encodeURIComponent(window.location.origin);
-    const oauthUrl = SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL"
-      ? `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`
-      : null;
-    if(oauthUrl){
-      window.location.href = oauthUrl;
-    } else {
-      // Demo: simulate Google login for testing
-      const mockAuth = {id:"google_"+Date.now().toString(36),email:"demo@gmail.com",name:"Google User",plan:"free",provider:"google"};
-      saveSession(mockAuth);
-      onAuth(mockAuth);
-    }
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;
   };
 
   return(
@@ -2431,6 +2435,12 @@ function AppRoot({auth,onLogout}){
 
 export default function ClientPulse(){
   const[auth,setAuth]=useState(()=>loadSession());
+  // Handle Google OAuth callback on page load
+useEffect(()=>{
+    const cbAuth = handleSupabaseCallback();
+    if(cbAuth){ saveSession(cbAuth); setAuth(cbAuth); }
+  },[]);
+
   if(!auth) return <AuthScreen onAuth={d=>{setAuth(d);}}/>;
   return <AppRoot auth={auth} onLogout={()=>setAuth(null)}/>;
 }
