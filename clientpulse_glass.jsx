@@ -745,7 +745,7 @@ function AuthScreen({onAuth}){
   const googleLogin=()=>{
     // Supabase Google OAuth — replace SUPABASE_URL with your project URL
     // Set up: supabase.com → Auth → Providers → Google → enable
-    const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+    const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co";
     const redirectUrl = encodeURIComponent(window.location.origin);
     const oauthUrl = SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL"
       ? `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`
