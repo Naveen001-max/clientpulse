@@ -747,7 +747,7 @@ function AuthScreen({onAuth}){
     // Set up: supabase.com → Auth → Providers → Google → enable
     const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co";
     const redirectUrl = encodeURIComponent(window.location.origin);
-    const oauthUrl = SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL"
+    const oauthUrl = SUPABASE_URL !== "https://fzohdtvijhdlnqtasadc.supabase.co"
       ? `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`
       : null;
     if(oauthUrl){
