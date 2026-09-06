@@ -119,7 +119,7 @@ const PLANS = {
       "Email templates (unlimited)","Priority support",
     ],
     locked:["5 team seats","White-label / custom branding"],
-    checkoutUrl:"https://rzp.io/rzp/3hFapDn",
+    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_PRO_ID",
   },
   agency: {
     id:"agency", name:"Agency", price:79, label:"$79/month", color:C.purple,
@@ -137,7 +137,7 @@ const PLANS = {
       "Dedicated account manager","Custom onboarding call",
     ],
     locked:[],
-    checkoutUrl:"https://rzp.io/rzp/PSSUr95u",
+    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_AGENCY_ID",
   },
 };
 const planOrder={free:0,pro:1,agency:2};
@@ -743,21 +743,9 @@ function AuthScreen({onAuth}){
   };
 
   const googleLogin=()=>{
-    // Supabase Google OAuth — replace SUPABASE_URL with your project URL
-    // Set up: supabase.com → Auth → Providers → Google → enable
     const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co";
     const redirectUrl = encodeURIComponent(window.location.origin);
-    const oauthUrl = SUPABASE_URL !== "https://fzohdtvijhdlnqtasadc.supabase.co"
-      ? `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`
-      : null;
-    if(oauthUrl){
-      window.location.href = oauthUrl;
-    } else {
-      // Demo: simulate Google login for testing
-      const mockAuth = {id:"google_"+Date.now().toString(36),email:"demo@gmail.com",name:"Google User",plan:"free",provider:"google"};
-      saveSession(mockAuth);
-      onAuth(mockAuth);
-    }
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;
   };
 
   return(
