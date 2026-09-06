@@ -2419,6 +2419,38 @@ function AppRoot({auth,onLogout}){
 
 export default function ClientPulse(){
   const[auth,setAuth]=useState(()=>loadSession());
+
+  useEffect(()=>{
+    // Handle Supabase Google OAuth callback
+    const hash = window.location.hash;
+    if(!hash.includes("access_token")) return;
+
+    const params = new URLSearchParams(hash.replace("#","?"));
+    const accessToken = params.get("access_token");
+    if(!accessToken) return;
+
+    // Fetch user info from Supabase using the token
+    fetch("https://fzohdtvijhdlnqtasadc.supabase.co/auth/v1/user",{
+      headers:{ Authorization:`Bearer ${accessToken}`, apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6b2hkdHZpamhkbG5xdGFzYWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMjM5OTUsImV4cCI6MjEwMzg5OTk5NX0.kSor30fbsaIyd7gzJSgdx6FeCOsqt7wFFq4HmC-Kbbc" }
+    })
+    .then(r=>r.json())
+    .then(user=>{
+      if(!user?.id) return;
+      const authData = {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+        plan: "free",
+        provider: "google",
+      };
+      // Clean the URL so token doesn't stay in browser history
+      window.history.replaceState({},document.title,window.location.pathname);
+      saveSession(authData);
+      setAuth(authData);
+    })
+    .catch(err=>console.error("OAuth callback error:",err));
+  },[]);
+
   if(!auth) return <AuthScreen onAuth={d=>{setAuth(d);}}/>;
   return <AppRoot auth={auth} onLogout={()=>setAuth(null)}/>;
 }
