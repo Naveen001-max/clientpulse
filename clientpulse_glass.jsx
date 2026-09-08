@@ -119,7 +119,7 @@ const PLANS = {
       "Email templates (unlimited)","Priority support",
     ],
     locked:["5 team seats","White-label / custom branding"],
-    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_PRO_ID",
+    checkoutUrl:"https://rzp.io/rzp/3hFapDn",
   },
   agency: {
     id:"agency", name:"Agency", price:79, label:"$79/month", color:C.purple,
@@ -137,7 +137,7 @@ const PLANS = {
       "Dedicated account manager","Custom onboarding call",
     ],
     locked:[],
-    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_AGENCY_ID",
+    checkoutUrl:"https://rzp.io/rzp/PSSUr95u",
   },
 };
 const planOrder={free:0,pro:1,agency:2};
@@ -746,7 +746,7 @@ function AuthScreen({onAuth}){
     // Redirect to Supabase Google OAuth
     // No API keys here — all secrets live in /api/auth/* serverless functions
     const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co";
-    const redirectTo = encodeURIComponent(window.location.origin + "?oauth=google");
+    const redirectTo = encodeURIComponent(window.location.origin);
     window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
   };
 
@@ -2433,11 +2433,9 @@ export default function ClientPulse(){
   const[checking,setChecking]=useState(false);
 
   // ── Handle Google OAuth callback ─────────────────────────────
+  // Supabase returns access_token in URL hash after Google sign-in
+  // No ?oauth=google param needed — just detect the hash directly
   useEffect(()=>{
-    const params = new URLSearchParams(window.location.search);
-    const isOAuth = params.get("oauth") === "google";
-    if(!isOAuth) return;
-
     const hash = window.location.hash;
     if(!hash.includes("access_token")) return;
 
@@ -2445,12 +2443,10 @@ export default function ClientPulse(){
     const accessToken = hashParams.get("access_token");
     if(!accessToken) return;
 
-    setChecking(true);
-    // Clean URL immediately
+    // Clean URL immediately so token never sits in browser history
     window.history.replaceState({}, document.title, window.location.pathname);
+    setChecking(true);
 
-    // Send token to OUR backend — never use it directly in frontend
-    // Backend verifies with Supabase service role key (which is never in frontend)
     fetch(`${BACKEND}/api/auth/google/callback`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -2458,16 +2454,13 @@ export default function ClientPulse(){
     })
     .then(r=>r.json())
     .then(data=>{
-      if(!data.token) throw new Error("No token returned");
-      // Store our signed JWT (not the Supabase token)
-      saveSession({ _jwt: data.token });
-      // Decode for UI (no secret needed to read JWT payload)
+      if(!data.token) throw new Error("No token from backend");
       const payload = JSON.parse(atob(data.token.split(".")[1]));
       const authData = { id:payload.userId, email:payload.email, name:payload.name, plan:payload.plan };
       saveSession(authData);
       setAuth(authData);
     })
-    .catch(err=>{ console.error("OAuth error:",err); })
+    .catch(err=>console.error("OAuth callback error:",err))
     .finally(()=>setChecking(false));
   },[]);
 
