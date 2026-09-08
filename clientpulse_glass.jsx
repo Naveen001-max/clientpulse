@@ -119,7 +119,7 @@ const PLANS = {
       "Email templates (unlimited)","Priority support",
     ],
     locked:["5 team seats","White-label / custom branding"],
-    checkoutUrl:"https://rzp.io/rzp/3hFapDn",
+    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_PRO_ID",
   },
   agency: {
     id:"agency", name:"Agency", price:79, label:"$79/month", color:C.purple,
@@ -137,7 +137,7 @@ const PLANS = {
       "Dedicated account manager","Custom onboarding call",
     ],
     locked:[],
-    checkoutUrl:"https://rzp.io/rzp/PSSUr95u",
+    checkoutUrl:"https://clientpulse.lemonsqueezy.com/checkout/buy/YOUR_AGENCY_ID",
   },
 };
 const planOrder={free:0,pro:1,agency:2};
@@ -743,9 +743,11 @@ function AuthScreen({onAuth}){
   };
 
   const googleLogin=()=>{
+    // Redirect to Supabase Google OAuth
+    // No API keys here — all secrets live in /api/auth/* serverless functions
     const SUPABASE_URL = "https://fzohdtvijhdlnqtasadc.supabase.co";
-    const redirectUrl = encodeURIComponent(window.location.origin);
-    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;
+    const redirectTo = encodeURIComponent(window.location.origin + "?oauth=google");
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
   };
 
   return(
@@ -870,8 +872,12 @@ function AuthScreen({onAuth}){
 // ═══════════════════════════════════════════════════════════════
 function PricingModal({currentPlan,onClose,onSimulate}){
   const open=(plan)=>{
-    if(!plan.checkoutUrl||plan.checkoutUrl.includes("YOUR_")){onSimulate(plan.id);return;}
+    if(!plan.checkoutUrl){return;}
+    // Open Razorpay payment page
+    // Plan upgrades ONLY via server webhook after payment — never here
     window.open(plan.checkoutUrl,"_blank","noopener,noreferrer");
+    // Show pending message
+    alert("Complete your payment in the new tab. Your plan will upgrade automatically within 60 seconds of payment.");
   };
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(5,3,20,0.88)",zIndex:Z.panel+10,
@@ -926,7 +932,7 @@ function PricingModal({currentPlan,onClose,onSimulate}){
                   {isCur
                     ?<div style={{textAlign:"center",padding:"10px 0",fontSize:F.base,fontWeight:F.semibold,color:C.green}}>✓ Active plan</div>
                     :plan.id==="free"
-                      ?<Btn onClick={()=>onSimulate("free")} variant="secondary" fullWidth>Downgrade to Free</Btn>
+                      ?<Btn onClick={()=>alert("To downgrade, contact support@clientpulse.io")} variant="secondary" fullWidth>Downgrade to Free</Btn>
                       :<Btn onClick={()=>open(plan)} variant={plan.id==="pro"?"primary":"brand_ghost"} fullWidth>
                         Get {plan.name} — {plan.label}
                       </Btn>
@@ -2417,39 +2423,85 @@ function AppRoot({auth,onLogout}){
   );
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BACKEND URL — change if you deploy backend separately
+// ═══════════════════════════════════════════════════════════════
+const BACKEND = window.location.origin; // same Vercel project
+
 export default function ClientPulse(){
   const[auth,setAuth]=useState(()=>loadSession());
+  const[checking,setChecking]=useState(false);
 
+  // ── Handle Google OAuth callback ─────────────────────────────
   useEffect(()=>{
-    // Handle Supabase Google OAuth callback
+    const params = new URLSearchParams(window.location.search);
+    const isOAuth = params.get("oauth") === "google";
+    if(!isOAuth) return;
+
     const hash = window.location.hash;
     if(!hash.includes("access_token")) return;
 
-    const params = new URLSearchParams(hash.replace("#","?"));
-    const accessToken = params.get("access_token");
+    const hashParams = new URLSearchParams(hash.replace("#","?"));
+    const accessToken = hashParams.get("access_token");
     if(!accessToken) return;
 
-    // Fetch user info from Supabase using the token
-    fetch("https://fzohdtvijhdlnqtasadc.supabase.co/auth/v1/user",{
-      headers:{ Authorization:`Bearer ${accessToken}`, apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6b2hkdHZpamhkbG5xdGFzYWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMjM5OTUsImV4cCI6MjEwMzg5OTk5NX0.kSor30fbsaIyd7gzJSgdx6FeCOsqt7wFFq4HmC-Kbbc" }
+    setChecking(true);
+    // Clean URL immediately
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // Send token to OUR backend — never use it directly in frontend
+    // Backend verifies with Supabase service role key (which is never in frontend)
+    fetch(`${BACKEND}/api/auth/google/callback`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ access_token: accessToken }),
     })
     .then(r=>r.json())
-    .then(user=>{
-      if(!user?.id) return;
-      const authData = {
-        id: user.id,
-        email: user.email,
-        name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-        plan: "free",
-        provider: "google",
-      };
-      // Clean the URL so token doesn't stay in browser history
-      window.history.replaceState({},document.title,window.location.pathname);
+    .then(data=>{
+      if(!data.token) throw new Error("No token returned");
+      // Store our signed JWT (not the Supabase token)
+      saveSession({ _jwt: data.token });
+      // Decode for UI (no secret needed to read JWT payload)
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      const authData = { id:payload.userId, email:payload.email, name:payload.name, plan:payload.plan };
       saveSession(authData);
       setAuth(authData);
     })
-    .catch(err=>console.error("OAuth callback error:",err));
+    .catch(err=>{ console.error("OAuth error:",err); })
+    .finally(()=>setChecking(false));
   },[]);
+
+  // ── Verify plan on every load — plan comes from server not localStorage ──
+  useEffect(()=>{
+    if(!auth) return;
+    const jwt = localStorage.getItem("cp_jwt_v3");
+    if(!jwt) return;
+    // Re-verify session and get latest plan from DB
+    fetch(`${BACKEND}/api/auth/verify`,{
+      headers:{ Authorization:`Bearer ${jwt}` }
+    })
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.error){ clearSession(); setAuth(null); return; }
+      // Update plan from server — cannot be manipulated client-side
+      if(data.plan !== auth.plan){
+        const updated = {...auth, plan:data.plan};
+        saveSession(updated);
+        setAuth(updated);
+      }
+    })
+    .catch(()=>{}); // Fail silently — use cached session if offline
+  },[auth?.id]);
+
+  if(checking) return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
+      background:"linear-gradient(135deg,#05031e,#0d0826)",fontFamily:"Inter,system-ui,sans-serif"}}>
+      <div style={{textAlign:"center",color:"rgba(255,255,255,0.6)",fontSize:14}}>
+        <div style={{fontSize:32,marginBottom:16}}>⚡</div>
+        Signing you in…
+      </div>
+    </div>
+  );
 
   if(!auth) return <AuthScreen onAuth={d=>{setAuth(d);}}/>;
   return <AppRoot auth={auth} onLogout={()=>setAuth(null)}/>;
