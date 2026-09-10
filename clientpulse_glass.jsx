@@ -671,7 +671,7 @@ function CPLogo({size=34}){
 // ═══════════════════════════════════════════════════════════════
 // SECURE AUTH SCREEN — with Google OAuth UI + security hardening
 // ═══════════════════════════════════════════════════════════════
-function AuthScreen({onAuth}){
+function AuthScreen({onAuth,oauthErr=""}){
   const[mode,setMode]=useState("login");
   const[name,setName]=useState("");
   const[email,setEmail]=useState("");
@@ -839,10 +839,10 @@ function AuthScreen({onAuth}){
             )}
           </div>
 
-          {err&&(
+          {(err||oauthErr)&&(
             <div style={{marginTop:S[3],background:"rgba(248,113,113,0.12)",color:C.red,fontSize:F.sm,
               borderRadius:R.md,padding:`${S[2]}px ${S[3]}px`,border:`1px solid rgba(248,113,113,0.25)`,lineHeight:1.5}}>
-              {err}
+              {err||oauthErr}
             </div>
           )}
 
@@ -2423,79 +2423,73 @@ function AppRoot({auth,onLogout}){
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// BACKEND URL — change if you deploy backend separately
-// ═══════════════════════════════════════════════════════════════
-const BACKEND = window.location.origin; // same Vercel project
-
 export default function ClientPulse(){
   const[auth,setAuth]=useState(()=>loadSession());
   const[checking,setChecking]=useState(false);
+  const[oauthErr,setOauthErr]=useState("");
 
-  // ── Handle Google OAuth callback ─────────────────────────────
-  // Supabase returns access_token in URL hash after Google sign-in
-  // No ?oauth=google param needed — just detect the hash directly
   useEffect(()=>{
     const hash = window.location.hash;
     if(!hash.includes("access_token")) return;
-
-    const hashParams = new URLSearchParams(hash.replace("#","?"));
-    const accessToken = hashParams.get("access_token");
-    if(!accessToken) return;
-
-    // Clean URL immediately so token never sits in browser history
-    window.history.replaceState({}, document.title, window.location.pathname);
+    const p = new URLSearchParams(hash.replace("#","?"));
+    const token = p.get("access_token");
+    if(!token) return;
+    window.history.replaceState({},document.title,window.location.pathname);
     setChecking(true);
-
-    fetch(`${BACKEND}/api/auth/google/callback`,{
+    // Call our backend — service role key stays server-side
+    fetch("/api/auth/google/callback",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ access_token: accessToken }),
+      body:JSON.stringify({access_token:token}),
     })
-    .then(r=>r.json())
+    .then(r=>{
+      if(!r.ok) throw new Error("Backend error "+r.status);
+      return r.json();
+    })
     .then(data=>{
-      if(!data.token) throw new Error("No token from backend");
-      const payload = JSON.parse(atob(data.token.split(".")[1]));
-      const authData = { id:payload.userId, email:payload.email, name:payload.name, plan:payload.plan };
+      if(!data.token) throw new Error("No session token");
+      // Decode JWT payload (public — no secret needed to read)
+      const pl = JSON.parse(atob(data.token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+      const authData={id:pl.userId,email:pl.email,name:pl.name,plan:pl.plan||"free"};
+      localStorage.setItem("cp_jwt_v3", data.token);
       saveSession(authData);
       setAuth(authData);
     })
-    .catch(err=>console.error("OAuth callback error:",err))
+    .catch(e=>{
+      console.error("Google login failed:",e.message);
+      setOauthErr("Google sign-in failed — please try again or use email.");
+    })
     .finally(()=>setChecking(false));
   },[]);
 
-  // ── Verify plan on every load — plan comes from server not localStorage ──
+  // Re-verify plan from DB on every load (prevents localStorage manipulation)
   useEffect(()=>{
     if(!auth) return;
-    const jwt = localStorage.getItem("cp_jwt_v3");
+    const jwt=localStorage.getItem("cp_jwt_v3");
     if(!jwt) return;
-    // Re-verify session and get latest plan from DB
-    fetch(`${BACKEND}/api/auth/verify`,{
-      headers:{ Authorization:`Bearer ${jwt}` }
-    })
-    .then(r=>r.json())
+    fetch("/api/auth/verify",{headers:{Authorization:"Bearer "+jwt}})
+    .then(r=>r.ok?r.json():null)
     .then(data=>{
-      if(data.error){ clearSession(); setAuth(null); return; }
-      // Update plan from server — cannot be manipulated client-side
-      if(data.plan !== auth.plan){
-        const updated = {...auth, plan:data.plan};
-        saveSession(updated);
-        setAuth(updated);
+      if(!data||data.error){clearSession();setAuth(null);return;}
+      if(data.plan!==auth.plan){
+        const u={...auth,plan:data.plan};
+        saveSession(u);setAuth(u);
       }
     })
-    .catch(()=>{}); // Fail silently — use cached session if offline
+    .catch(()=>{});
   },[auth?.id]);
 
   if(checking) return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
       background:"linear-gradient(135deg,#05031e,#0d0826)",fontFamily:"Inter,system-ui,sans-serif"}}>
-      <div style={{textAlign:"center",color:"rgba(255,255,255,0.6)",fontSize:14}}>
-        <div style={{fontSize:32,marginBottom:16}}>⚡</div>
-        Signing you in…
+      <div style={{textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:16}}>⚡</div>
+        <div style={{color:"rgba(255,255,255,0.8)",fontSize:15,fontWeight:600}}>Signing you in…</div>
+        <div style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:8}}>Just a moment</div>
       </div>
     </div>
   );
 
-  if(!auth) return <AuthScreen onAuth={d=>{setAuth(d);}}/>;
-  return <AppRoot auth={auth} onLogout={()=>setAuth(null)}/>;
+  if(!auth) return <AuthScreen onAuth={d=>setAuth(d)} oauthErr={oauthErr}/>;
+  return <AppRoot auth={auth} onLogout={()=>{clearSession();setAuth(null);}}/>;
 }
