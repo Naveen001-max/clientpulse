@@ -1,57 +1,58 @@
-// ═══════════════════════════════════════════════════════════════
-// /api/auth/verify.js — Vercel Serverless Function
-// Frontend calls this on every page load to verify the session
-// and get the current plan from the database (not from localStorage)
-// ═══════════════════════════════════════════════════════════════
-import jwt from "jsonwebtoken";
-import { createClient } from "@supabase/supabase-js";
-
+// /api/auth/verify.js
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", process.env.FRONTEND_URL);
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization");
-
   if(req.method === "OPTIONS") return res.status(200).end();
   if(req.method !== "GET") return res.status(405).end();
 
-  const authHeader = req.headers.authorization;
-  if(!authHeader?.startsWith("Bearer ")) return res.status(401).json({ error: "No token" });
+  const auth = req.headers.authorization;
+  if(!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "No token" });
 
-  const token = authHeader.slice(7);
-
+  const token = auth.slice(7);
   try {
-    // Verify our signed JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { issuer: "clientpulse" });
+    const parts = token.split(".");
+    if(parts.length !== 3) throw new Error("Invalid token format");
 
-    // Always re-check plan from DB — cannot be faked by editing localStorage
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Verify signature
+    const enc    = new TextEncoder();
+    const secret = process.env.JWT_SECRET || "fallback_secret";
+    const key    = await crypto.subtle.importKey(
+      "raw", enc.encode(secret), { name:"HMAC", hash:"SHA-256" }, false, ["verify"]
+    );
+    const sigBuf = Uint8Array.from(
+      atob(parts[2].replace(/-/g,"+").replace(/_/g,"/")), c=>c.charCodeAt(0)
+    );
+    const valid  = await crypto.subtle.verify(
+      "HMAC", key, sigBuf, enc.encode(`${parts[0]}.${parts[1]}`)
+    );
+    if(!valid) return res.status(401).json({ error: "Invalid signature" });
+
+    // Decode payload
+    const payload = JSON.parse(atob(parts[1]));
+    if(Date.now() > payload.exp) return res.status(401).json({ error: "Expired" });
+
+    // Check plan from Supabase DB
+    const dbRes = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${payload.userId}&select=plan,plan_expires_at`,
+      { headers: {
+        "apikey":        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      }}
     );
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan, plan_expires_at")
-      .eq("id", decoded.userId)
-      .single();
-
-    // Check expiry
-    let plan = "free";
-    if(profile?.plan && profile.plan !== "free") {
-      const expired = profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date();
-      plan = expired ? "free" : profile.plan;
-      if(expired) {
-        await supabase.from("profiles").update({ plan: "free" }).eq("id", decoded.userId);
+    let plan = payload.plan || "free";
+    if(dbRes.ok) {
+      const rows = await dbRes.json();
+      if(rows?.[0]) {
+        const expired = rows[0].plan_expires_at && new Date(rows[0].plan_expires_at) < new Date();
+        plan = expired ? "free" : (rows[0].plan || "free");
       }
     }
 
-    return res.status(200).json({
-      userId: decoded.userId,
-      email: decoded.email,
-      name: decoded.name,
-      plan,
-    });
+    return res.status(200).json({ userId:payload.userId, email:payload.email, name:payload.name, plan });
   } catch(err) {
-    return res.status(401).json({ error: "Invalid or expired session" });
+    console.error("Verify error:", err.message);
+    return res.status(401).json({ error: "Invalid token" });
   }
 }
