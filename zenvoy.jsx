@@ -1,60 +1,29 @@
 import { useState, useEffect, useRef, useCallback, useReducer, useMemo } from "react";
 
 
-// ── Font + global CSS injection ────────────────────────────────
 if(typeof document!=="undefined"&&!document.getElementById("zv-styles")){
-  const l=document.createElement("link");l.rel="stylesheet";
-  l.href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap";
-  document.head.appendChild(l);
-  const s=document.createElement("style");s.id="zv-styles";
-  s.textContent=`
-    *{box-sizing:border-box}
-    body{margin:0;background:#0c150b;color:#f0ebe0;font-family:'DM Sans',system-ui,sans-serif}
-    ::-webkit-scrollbar{width:4px;height:4px}
-    ::-webkit-scrollbar-track{background:#111f0f}
-    ::-webkit-scrollbar-thumb{background:#3d6634;border-radius:99px}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .zv-fade{animation:fadeUp 0.3s ease both}
-    @media(max-width:768px){
-      .zv-sidebar{display:none!important}
-      .zv-mob-nav{display:flex!important}
-      .zv-page{padding:16px 16px 80px!important}
-      .zv-topbar{padding:0 16px!important}
-    }
-    @media(min-width:769px){.zv-mob-nav{display:none!important}}
-  `;
-  document.head.appendChild(s);
+  const _l=document.createElement("link");_l.rel="stylesheet";
+  _l.href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap";
+  document.head.appendChild(_l);
+  const _s=document.createElement("style");_s.id="zv-styles";
+  _s.textContent=`*{box-sizing:border-box}body{margin:0;background:#0c150b;color:#f0ebe0;font-family:'DM Sans',system-ui,sans-serif}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111f0f}::-webkit-scrollbar-thumb{background:#3d6634;border-radius:99px}@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(max-width:768px){.zv-sidebar{display:none!important}.zv-mob-nav{display:flex!important}.zv-page{padding:16px 16px 80px!important}}@media(min-width:769px){.zv-mob-nav{display:none!important}}`;
+  document.head.appendChild(_s);
 }
 
-// ── Toast system ────────────────────────────────────────────────
 let _tq=[],_ts=null;
-const toast={
-  _i:0,
-  show:(msg,type="success",dur=3400)=>{
-    const id=++toast._i;
-    _tq=[..._tq,{id,msg,type}];if(_ts)_ts([..._tq]);
-    setTimeout(()=>{_tq=_tq.filter(t=>t.id!==id);if(_ts)_ts([..._tq]);},dur);
-  },
-  success:m=>toast.show(m,"success"),
-  error:  m=>toast.show(m,"error",5000),
-  info:   m=>toast.show(m,"info"),
+const toast={_i:0,
+  show:(msg,type="success",dur=3400)=>{const id=++toast._i;_tq=[..._tq,{id,msg,type}];if(_ts)_ts([..._tq]);setTimeout(()=>{_tq=_tq.filter(t=>t.id!==id);if(_ts)_ts([..._tq]);},dur);},
+  success:m=>toast.show(m,"success"),error:m=>toast.show(m,"error",5000),info:m=>toast.show(m,"info"),
 };
 function ToastContainer(){
   const[ts,setTs]=useState([]);
   useEffect(()=>{_ts=setTs;return()=>{_ts=null;};},[]);
   if(!ts.length)return null;
-  const cl={success:{bg:"#1a3015",bo:"#4a7a36",ic:"✓",c:"#a8d48a"},
-    error:{bg:"#3a1414",bo:"#7a3636",ic:"✕",c:"#d48a8a"},
-    info:{bg:"#1a2e16",bo:"#3d6634",ic:"ℹ",c:"#8cb87a"}};
+  const cl={success:{bg:"#1a3015",bo:"#4a7a36",ic:"✓",c:"#a8d48a"},error:{bg:"#3a1414",bo:"#7a3636",ic:"✕",c:"#d48a8a"},info:{bg:"#1a2e16",bo:"#3d6634",ic:"ℹ",c:"#8cb87a"}};
   return(
     <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8,pointerEvents:"none"}}>
       {ts.map(t=>{const c=cl[t.type]||cl.info;return(
-        <div key={t.id} style={{background:c.bg,border:`1px solid ${c.bo}`,borderRadius:10,
-          padding:"11px 16px",display:"flex",alignItems:"center",gap:10,minWidth:250,maxWidth:360,
-          boxShadow:"0 8px 32px rgba(0,0,0,0.4)",animation:"toastIn 0.22s ease",
-          fontFamily:"'DM Sans',sans-serif"}}>
+        <div key={t.id} style={{background:c.bg,border:`1px solid ${c.bo}`,borderRadius:10,padding:"11px 16px",display:"flex",alignItems:"center",gap:10,minWidth:250,maxWidth:360,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",animation:"toastIn 0.22s ease",fontFamily:"'DM Sans',sans-serif"}}>
           <span style={{color:c.c,fontSize:13,fontWeight:700,flexShrink:0}}>{c.ic}</span>
           <span style={{color:"#f0ebe0",fontSize:12,lineHeight:1.5}}>{t.msg}</span>
         </div>
@@ -63,80 +32,41 @@ function ToastContainer(){
   );
 }
 
-// ── Mobile bottom nav ───────────────────────────────────────────
 function MobileNav({page,onNav,badges}){
-  const items=[
-    {id:"dashboard",label:"Home",ic:"◈"},
-    {id:"clients",  label:"Clients",ic:"⬡",bk:"overdueClients"},
-    {id:"invoices", label:"Invoices",ic:"◻",bk:"overdueInvoices"},
-    {id:"tasks",    label:"Tasks",ic:"◇",bk:"highPriorityTasks"},
-    {id:"settings", label:"More",ic:"⚙"},
-  ];
+  const items=[{id:"dashboard",label:"Home",ic:"◈"},{id:"clients",label:"Clients",ic:"⬡",bk:"overdueClients"},{id:"invoices",label:"Invoices",ic:"◻",bk:"overdueInvoices"},{id:"tasks",label:"Tasks",ic:"◇",bk:"highPriorityTasks"},{id:"settings",label:"More",ic:"⚙"}];
   return(
-    <nav className="zv-mob-nav" style={{position:"fixed",bottom:0,left:0,right:0,
-      background:"#111f0f",borderTop:"1px solid rgba(122,184,94,0.15)",
-      justifyContent:"space-around",alignItems:"center",
-      padding:"6px 0 calc(6px + env(safe-area-inset-bottom,0px))",zIndex:500}}>
-      {items.map(it=>{
-        const active=page===it.id;
-        const badge=it.bk?badges[it.bk]:0;
-        return(
-          <button key={it.id} onClick={()=>onNav(it.id)}
-            style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-              background:"none",border:"none",cursor:"pointer",padding:"4px 10px",
-              color:active?"#a8d48a":"rgba(240,235,224,0.38)",fontFamily:"'DM Sans',sans-serif",
-              position:"relative",transition:"color 0.15s",minWidth:52}}>
-            <span style={{fontSize:17,lineHeight:1}}>{it.ic}</span>
-            <span style={{fontSize:9,fontWeight:active?700:400,letterSpacing:"0.04em"}}>{it.label}</span>
-            {badge>0&&<span style={{position:"absolute",top:0,right:4,background:"#c0544a",
-              color:"#fff",fontSize:9,fontWeight:700,borderRadius:99,padding:"1px 5px"}}>{badge}</span>}
-          </button>
-        );
-      })}
+    <nav className="zv-mob-nav" style={{position:"fixed",bottom:0,left:0,right:0,background:"#111f0f",borderTop:"1px solid rgba(122,184,94,0.15)",justifyContent:"space-around",alignItems:"center",padding:"6px 0 calc(6px + env(safe-area-inset-bottom,0px))",zIndex:500}}>
+      {items.map(it=>{const active=page===it.id;const badge=it.bk?badges[it.bk]:0;return(
+        <button key={it.id} onClick={()=>onNav(it.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"4px 10px",color:active?"#a8d48a":"rgba(240,235,224,0.38)",fontFamily:"'DM Sans',sans-serif",position:"relative",transition:"color 0.15s",minWidth:52}}>
+          <span style={{fontSize:17,lineHeight:1}}>{it.ic}</span>
+          <span style={{fontSize:9,fontWeight:active?700:400,letterSpacing:"0.04em"}}>{it.label}</span>
+          {badge>0&&<span style={{position:"absolute",top:0,right:4,background:"#c0544a",color:"#fff",fontSize:9,fontWeight:700,borderRadius:99,padding:"1px 5px"}}>{badge}</span>}
+        </button>
+      );})}
     </nav>
   );
 }
 
-// ── Onboarding checklist ────────────────────────────────────────
 function OnboardingChecklist({steps,onDismiss,onNavigate}){
   if(!steps||Object.values(steps).every(Boolean))return null;
-  const items=[
-    {key:"addedClient",  label:"Add your first client",    page:"clients"},
-    {key:"createdInvoice",label:"Create your first invoice",page:"invoices"},
-    {key:"triedAI",      label:"Try the AI email drafter",  page:"clients"},
-  ];
+  const items=[{key:"addedClient",label:"Add your first client",page:"clients"},{key:"createdInvoice",label:"Create your first invoice",page:"invoices"},{key:"triedAI",label:"Try the AI email drafter",page:"clients"}];
   const count=Object.values(steps).filter(Boolean).length;
   const pct=Math.round((count/items.length)*100);
   return(
-    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:14,
-      padding:"18px 20px",marginBottom:20,position:"relative"}}>
+    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:14,padding:"18px 20px",marginBottom:20,position:"relative"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:13,fontWeight:700,color:"#f0ebe0"}}>Get started — {count}/{items.length} done</div>
-        <button onClick={onDismiss} style={{background:"none",border:"none",cursor:"pointer",
-          color:"rgba(240,235,224,0.3)",fontSize:18,lineHeight:1,padding:2}}>×</button>
+        <button onClick={onDismiss} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(240,235,224,0.3)",fontSize:18,lineHeight:1,padding:2}}>×</button>
       </div>
       <div style={{height:3,background:"rgba(122,184,94,0.12)",borderRadius:99,marginBottom:14,overflow:"hidden"}}>
-        <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#5c8c48,#a8d48a)",
-          borderRadius:99,transition:"width 0.6s ease"}}/>
+        <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#5c8c48,#a8d48a)",borderRadius:99,transition:"width 0.6s ease"}}/>
       </div>
       {items.map(item=>(
-        <button key={item.key} onClick={()=>onNavigate(item.page)}
-          style={{display:"flex",alignItems:"center",gap:10,width:"100%",
-            background:steps[item.key]?"rgba(122,184,94,0.06)":"rgba(240,235,224,0.02)",
-            border:`1px solid ${steps[item.key]?"rgba(122,184,94,0.22)":"rgba(240,235,224,0.06)"}`,
-            borderRadius:8,padding:"9px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
-            marginBottom:6,transition:"all 0.15s"}}>
-          <div style={{width:20,height:20,borderRadius:"50%",flexShrink:0,
-            background:steps[item.key]?"rgba(122,184,94,0.2)":"transparent",
-            border:`1.5px solid ${steps[item.key]?"#7ab85e":"rgba(240,235,224,0.2)"}`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:10,color:steps[item.key]?"#7ab85e":"rgba(240,235,224,0.3)"}}>
+        <button key={item.key} onClick={()=>onNavigate(item.page)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",background:steps[item.key]?"rgba(122,184,94,0.06)":"rgba(240,235,224,0.02)",border:`1px solid ${steps[item.key]?"rgba(122,184,94,0.22)":"rgba(240,235,224,0.06)"}`,borderRadius:8,padding:"9px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginBottom:6,transition:"all 0.15s"}}>
+          <div style={{width:20,height:20,borderRadius:"50%",flexShrink:0,background:steps[item.key]?"rgba(122,184,94,0.2)":"transparent",border:`1.5px solid ${steps[item.key]?"#7ab85e":"rgba(240,235,224,0.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:steps[item.key]?"#7ab85e":"rgba(240,235,224,0.3)"}}>
             {steps[item.key]?"✓":"·"}
           </div>
-          <span style={{fontSize:12,color:steps[item.key]?"rgba(240,235,224,0.38)":"#f0ebe0",
-            textDecoration:steps[item.key]?"line-through":"none",fontWeight:500}}>
-            {item.label}
-          </span>
+          <span style={{fontSize:12,color:steps[item.key]?"rgba(240,235,224,0.38)":"#f0ebe0",textDecoration:steps[item.key]?"line-through":"none",fontWeight:500}}>{item.label}</span>
           {!steps[item.key]&&<span style={{marginLeft:"auto",fontSize:11,color:"#5c8c48"}}>→</span>}
         </button>
       ))}
@@ -144,75 +74,40 @@ function OnboardingChecklist({steps,onDismiss,onNavigate}){
   );
 }
 
-// ── Revenue goal tracker ─────────────────────────────────────────
 function RevenueGoal({goal,collected,onSetGoal}){
   const[editing,setEditing]=useState(false);
   const[val,setVal]=useState(String(goal||""));
   const pct=goal>0?Math.min(100,Math.round((collected/goal)*100)):0;
   const col=pct>=100?"#7ab85e":pct>=60?"#d4a043":"#a8d48a";
-  if(!goal&&!editing)return(
-    <button onClick={()=>setEditing(true)}
-      style={{background:"rgba(122,184,94,0.04)",border:"1px dashed rgba(122,184,94,0.2)",
-        borderRadius:10,padding:"10px 14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
-        color:"#5c8c48",fontSize:12,width:"100%",textAlign:"left",marginBottom:16}}>
-      + Set a monthly revenue goal
-    </button>
-  );
+  if(!goal&&!editing)return(<button onClick={()=>setEditing(true)} style={{background:"rgba(122,184,94,0.04)",border:"1px dashed rgba(122,184,94,0.2)",borderRadius:10,padding:"10px 14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",color:"#5c8c48",fontSize:12,width:"100%",textAlign:"left",marginBottom:16}}>+ Set a monthly revenue goal</button>);
   if(editing)return(
-    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:10,
-      padding:"12px 14px",marginBottom:16}}>
+    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:10,padding:"12px 14px",marginBottom:16}}>
       <div style={{fontSize:11,color:"#5c8c48",marginBottom:8,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Monthly goal ($)</div>
       <div style={{display:"flex",gap:8}}>
-        <input value={val} onChange={e=>setVal(e.target.value)} type="number" placeholder="5000" autoFocus
-          style={{flex:1,background:"rgba(122,184,94,0.06)",border:"1px solid rgba(122,184,94,0.3)",
-            borderRadius:7,padding:"7px 11px",color:"#f0ebe0",fontSize:13,fontFamily:"'DM Sans',sans-serif",outline:"none"}}/>
-        <button onClick={()=>{onSetGoal(Number(val));setEditing(false);}}
-          style={{background:"linear-gradient(135deg,#7ab85e,#4a7a36)",color:"#0c150b",border:"none",
-            borderRadius:7,padding:"7px 14px",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>Set</button>
-        <button onClick={()=>setEditing(false)}
-          style={{background:"none",border:"1px solid rgba(240,235,224,0.1)",borderRadius:7,
-            padding:"7px 10px",cursor:"pointer",color:"rgba(240,235,224,0.35)",fontSize:12}}>✕</button>
+        <input value={val} onChange={e=>setVal(e.target.value)} type="number" placeholder="5000" autoFocus style={{flex:1,background:"rgba(122,184,94,0.06)",border:"1px solid rgba(122,184,94,0.3)",borderRadius:7,padding:"7px 11px",color:"#f0ebe0",fontSize:13,fontFamily:"'DM Sans',sans-serif",outline:"none"}}/>
+        <button onClick={()=>{onSetGoal(Number(val));setEditing(false);}} style={{background:"linear-gradient(135deg,#7ab85e,#4a7a36)",color:"#0c150b",border:"none",borderRadius:7,padding:"7px 14px",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>Set</button>
+        <button onClick={()=>setEditing(false)} style={{background:"none",border:"1px solid rgba(240,235,224,0.1)",borderRadius:7,padding:"7px 10px",cursor:"pointer",color:"rgba(240,235,224,0.35)",fontSize:12}}>✕</button>
       </div>
     </div>
   );
   return(
-    <div onClick={()=>setEditing(true)} style={{background:"#162812",border:"1px solid rgba(122,184,94,0.18)",
-      borderRadius:10,padding:"12px 14px",cursor:"pointer",marginBottom:16}}>
+    <div onClick={()=>setEditing(true)} style={{background:"#162812",border:"1px solid rgba(122,184,94,0.18)",borderRadius:10,padding:"12px 14px",cursor:"pointer",marginBottom:16}}>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
         <span style={{fontSize:11,color:"#5c8c48",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Monthly goal</span>
         <span style={{fontSize:12,fontWeight:700,color:col}}>{pct}% · ${collected.toLocaleString()} / ${goal.toLocaleString()}</span>
       </div>
       <div style={{height:5,background:"rgba(122,184,94,0.1)",borderRadius:99,overflow:"hidden"}}>
-        <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${col}77,${col})`,
-          borderRadius:99,transition:"width 0.8s ease"}}/>
+        <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${col}77,${col})`,borderRadius:99,transition:"width 0.8s ease"}}/>
       </div>
       {pct>=100&&<div style={{fontSize:11,color:"#7ab85e",marginTop:5,fontWeight:600}}>Goal reached this month!</div>}
     </div>
   );
 }
 
-// ── Invoice PDF download ─────────────────────────────────────────
 function downloadInvoicePDF(inv,clients){
   const c=clients.find(x=>x.id===inv.clientId)||{name:inv.client,email:"",company:""};
   const w=window.open("","_blank","width=800,height=900");
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Arial,sans-serif;padding:60px;max-width:680px;margin:0 auto;color:#1a1a1a}
-  .logo{font-size:22px;font-weight:700;color:#2d4a22;margin-bottom:44px}.logo span{color:#7ab85e;font-weight:300}
-  h1{font-size:32px;font-weight:300;margin:0 0 4px}.num{font-size:12px;color:#999;margin-bottom:44px}
-  .row{display:flex;justify-content:space-between;margin-bottom:36px}.col h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin:0 0 5px}.col p{font-size:13px;color:#333;margin:0;line-height:1.6}
-  table{width:100%;border-collapse:collapse;margin:28px 0}th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;border-bottom:1px solid #eee;padding:7px 0;text-align:left}
-  td{padding:13px 0;border-bottom:1px solid #f5f5f5;font-size:13px}.tot td{border-bottom:none;font-size:17px;font-weight:700;padding-top:18px}
-  .status{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;background:${inv.status==="paid"?"#e8f5e0":"#fef3e0"};color:${inv.status==="paid"?"#2d6a1f":"#8a5700"}}
-  .footer{margin-top:52px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#ccc;text-align:center}</style>
-  </head><body>
-  <div class="logo">zen<span>voy</span></div>
-  <h1>Invoice</h1><div class="num">${inv.id} &nbsp;·&nbsp; <span class="status">${inv.status.toUpperCase()}</span></div>
-  <div class="row"><div class="col"><h3>Billed to</h3><p><strong>${c.name}</strong><br>${c.company||""}<br>${c.email||""}</p></div>
-  <div class="col" style="text-align:right"><h3>Date</h3><p>${inv.date||""}</p>${inv.due?`<h3 style="margin-top:10px">Due</h3><p>${inv.due}</p>`:""}</div></div>
-  <table><tr><th>Description</th><th style="text-align:right">Amount</th></tr>
-  <tr><td>${inv.desc||"Services rendered"}</td><td style="text-align:right">$${Number(inv.amount).toLocaleString()}</td></tr>
-  <tr class="tot"><td>Total</td><td style="text-align:right">$${Number(inv.amount).toLocaleString()}</td></tr></table>
-  <div class="footer">Generated by Zenvoy · zenvoy.io</div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:60px;max-width:680px;margin:0 auto;color:#1a1a1a}.logo{font-size:22px;font-weight:700;color:#2d4a22;margin-bottom:44px}.logo span{color:#7ab85e;font-weight:300}h1{font-size:32px;font-weight:300;margin:0 0 4px}.num{font-size:12px;color:#999;margin-bottom:44px}.row{display:flex;justify-content:space-between;margin-bottom:36px}.col h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin:0 0 5px}.col p{font-size:13px;color:#333;margin:0;line-height:1.6}table{width:100%;border-collapse:collapse;margin:28px 0}th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;border-bottom:1px solid #eee;padding:7px 0;text-align:left}td{padding:13px 0;border-bottom:1px solid #f5f5f5;font-size:13px}.tot td{border-bottom:none;font-size:17px;font-weight:700;padding-top:18px}.status{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;background:${inv.status==="paid"?"#e8f5e0":"#fef3e0"};color:${inv.status==="paid"?"#2d6a1f":"#8a5700"}}.footer{margin-top:52px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#ccc;text-align:center}</style></head><body><div class="logo">zen<span>voy</span></div><h1>Invoice</h1><div class="num">${inv.id} · <span class="status">${inv.status.toUpperCase()}</span></div><div class="row"><div class="col"><h3>Billed to</h3><p><strong>${c.name}</strong><br>${c.company||""}<br>${c.email||""}</p></div><div class="col" style="text-align:right"><h3>Date</h3><p>${inv.date||""}</p>${inv.due?`<h3 style="margin-top:10px">Due</h3><p>${inv.due}</p>`:""}</div></div><table><tr><th>Description</th><th style="text-align:right">Amount</th></tr><tr><td>${inv.desc||"Services rendered"}</td><td style="text-align:right">$${Number(inv.amount).toLocaleString()}</td></tr><tr class="tot"><td>Total</td><td style="text-align:right">$${Number(inv.amount).toLocaleString()}</td></tr></table><div class="footer">Generated by Zenvoy · zenvoy.io</div></body></html>`);
   w.document.close();w.onload=()=>w.print();
 }
 
@@ -273,7 +168,7 @@ const C = {
   glass:"rgba(26,46,22,0.6)",glassMid:"rgba(26,46,22,0.8)",
   glassHigh:"rgba(26,46,22,0.95)",
   glassBorder:"rgba(122,184,94,0.18)",
-  glassBorderHover:"rgba(122,184,94,0.40)",
+  glassBorderHover:"rgba(122,184,94,0.42)",
   glassBorderFocus:"rgba(122,184,94,0.65)",
   textPrimary:"#f0ebe0",textSec:"rgba(240,235,224,0.65)",
   textMuted:"rgba(240,235,224,0.35)",textBrand:"#a8d48a",
@@ -420,9 +315,9 @@ const NAV=[
 // ═══════════════════════════════════════════════════════════════
 // SECURE AUTH STORAGE
 // ═══════════════════════════════════════════════════════════════
-const AUTH_KEY  = "zv_session_v1";
-const USERS_KEY = "zv_users_v1";
-const dataKey   = id=>`zv_data_v1_${id}`;
+const AUTH_KEY  = "cp_session_v3";
+const USERS_KEY = "cp_users_v3";
+const dataKey   = id=>`cp_data_v3_${id}`;
 
 const loadSession = ()=>{
   try {
@@ -472,7 +367,7 @@ const healthScore = (client, tasks) => {
 };
 const healthColor = s => s>=70?C.green:s>=40?C.amber:C.red;
 
-const buildSys = c => `You are Zenvoy AI — a revenue-focused assistant for freelancers.
+const buildSys = c => `You are ClientPulse AI — a revenue-focused assistant for freelancers.
 Client: ${c.name} | ${c.company} | ${c.email}
 Project: "${c.project}" | Value: $${c.value?.toLocaleString()} | Paid: $${(c.paid||0).toLocaleString()}
 Status: ${c.status} | Last contact: ${daysAgo(c.lastContact||today())}d ago
@@ -554,7 +449,7 @@ function reducer(s,{type:t,p}){
     case A.PRICING: return{...base,ui:{...base.ui,pricing:p}};
     case A.PLAN:    return{...base,plan:p,ui:{...base.ui,pricing:false}};
     case A.AI_USED: return{...base,aiUsed:base.aiUsed+1};
-    case "ONBOARD_STEP": return{...base,onboarding:{...base.onboarding,steps:{...(base.onboarding?.steps||{}), ...p}}};
+    case "ONBOARD_STEP": return{...base,onboarding:{...base.onboarding,steps:{...(base.onboarding?.steps||{}),...p}}};
     case "ONBOARD_DISMISS": return{...base,onboarding:{...base.onboarding,dismissed:true}};
     case "GOAL_SET": return{...base,revenueGoal:p};
     default: return base;
@@ -666,9 +561,9 @@ function Btn({children,onClick,variant="secondary",size="md",disabled=false,full
     ghost:      {bg:hov?"rgba(255,255,255,0.08)":"transparent",co:C.textSec,bo:"none",sh:"none"},
     danger:     {bg:`linear-gradient(135deg,${C.red},#ef4444)`,co:C.white,bo:"none",sh:`0 4px 16px ${C.redGlow}`},
     success:    {bg:`linear-gradient(135deg,${C.green},#059669)`,co:C.white,bo:"none",sh:`0 4px 16px ${C.greenGlow}`},
-    brand_ghost:{bg:hov?"rgba(122,184,94,0.18)":"rgba(122,184,94,0.09)",co:C.brandLight,bo:`1px solid rgba(122,184,94,0.3)`,sh:"none"},
-    amber:      {bg:`linear-gradient(135deg,${C.amber},#b8880f)`,co:"#fff",bo:"none",sh:`0 4px 20px ${C.amberGlow}`},
-    google:     {bg:hov?"rgba(245,240,228,0.1)":"rgba(245,240,228,0.05)",co:C.textPrimary,bo:`1px solid rgba(122,184,94,0.25)`,sh:"none"},
+    brand_ghost:{bg:hov?"rgba(122,184,94,0.18)":"rgba(122,184,94,0.08)",co:C.brandLight,bo:`1px solid rgba(122,184,94,0.28)`,sh:"none"},
+    amber:      {bg:`linear-gradient(135deg,${C.amber},#b8880f)`,co:"#f0ebe0",bo:"none",sh:`0 4px 20px ${C.amberGlow}`},
+    google:     {bg:hov?"rgba(245,240,228,0.10)":"rgba(245,240,228,0.05)",co:C.textPrimary,bo:`1px solid rgba(122,184,94,0.25)`,sh:"none"},
   };
   const v=vt[variant]||vt.secondary;const ss=sz[size]||sz.md;
   return(
@@ -745,7 +640,7 @@ function Card({children,style:ex={},onClick,glow}){
   return(
     <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{...gCard(),border:`1px solid ${hov&&onClick?C.glassBorderHover:C.glassBorder}`,
-        boxShadow:hov&&onClick?`0 12px 40px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.12),0 0 20px ${glow||C.brandGlow}`:"0 8px 32px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08)",
+        boxShadow:hov&&onClick?`0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(122,184,94,0.3)`:"0 4px 16px rgba(0,0,0,0.3)",
         cursor:onClick?"pointer":undefined,transition:"all 0.2s",...ex}}>
       {children}
     </div>
@@ -759,7 +654,7 @@ function Modal({title,onClose,children,width=520}){
   },[onClose]);
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(12,21,11,0.88)",zIndex:Z.modal,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6],backdropFilter:"blur(12px)"}}>
+      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6],backdropFilter:"blur(16px)"}}>
       <div style={{...gCard({background:"#1a2e16"}),
         width,maxWidth:"100%",maxHeight:"90vh",overflowY:"auto",borderRadius:R.xxl,
         boxShadow:"0 24px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15)"}}>
@@ -838,7 +733,7 @@ function Srch({value,onChange,placeholder="Search…"}){
           fontFamily:F.family,color:C.textPrimary,outline:"none",boxSizing:"border-box",transition:"all 0.15s",
           background:foc?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
           border:`1px solid ${foc?C.glassBorderFocus:C.glassBorder}`,
-          backdropFilter:"blur(12px)",boxShadow:foc?`0 0 0 3px rgba(122,184,94,0.12)`:"none"}}/>
+          backdropFilter:"blur(16px)",boxShadow:foc?`0 0 0 3px rgba(122,184,94,0.12)`:"none"}}/>
     </div>
   );
 }
@@ -865,10 +760,9 @@ function PlanGate({cur,req,name,onUpgrade,children}){
 // LOGO COMPONENT — SVG mark + wordmark
 // ═══════════════════════════════════════════════════════════════
 function CPLogo({size=34,withText=false}){
-  const s=size;
   return(
-    <div style={{display:"flex",alignItems:"center",gap:Math.round(s*0.3),flexShrink:0}}>
-      <svg width={s} height={s} viewBox="0 0 80 80" fill="none"
+    <div style={{display:"flex",alignItems:"center",gap:Math.round(size*0.3),flexShrink:0}}>
+      <svg width={size} height={size} viewBox="0 0 80 80" fill="none"
         style={{flexShrink:0,filter:"drop-shadow(0 2px 8px rgba(122,184,94,0.4))"}}>
         <circle cx="40" cy="40" r="40" fill="#f5f0e4"/>
         <rect x="18" y="26" width="44" height="5" rx="2.5" fill="#2d4a22"/>
@@ -878,8 +772,8 @@ function CPLogo({size=34,withText=false}){
       </svg>
       {withText&&(
         <div style={{display:"flex",alignItems:"baseline",gap:1}}>
-          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(s*0.55),color:"#f0ebe0",fontWeight:700,letterSpacing:"-0.04em",lineHeight:1}}>zen</span>
-          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(s*0.55),color:"#8cb87a",fontWeight:300,letterSpacing:"-0.02em",lineHeight:1}}>voy</span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.55),color:"#f0ebe0",fontWeight:700,letterSpacing:"-0.04em",lineHeight:1}}>zen</span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.55),color:"#8cb87a",fontWeight:300,letterSpacing:"-0.02em",lineHeight:1}}>voy</span>
         </div>
       )}
     </div>
@@ -979,13 +873,13 @@ function AuthScreen({onAuth,oauthErr=""}){
           <div style={{margin:"0 auto",marginBottom:S[3],display:"flex",justifyContent:"center"}}>
             <CPLogo size={48}/>
           </div>
-          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:F.xxl,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.025em"}}>Zenvoy</div>
-          <div style={{fontSize:F.base,color:C.textMuted,marginTop:S[1]}}>The AI CRM for freelancers</div>
+          <div style={{fontSize:F.xxl,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.025em"}}>ClientPulse</div>
+          <div style={{fontSize:F.base,color:C.textMuted,marginTop:S[1]}}>AI-powered CRM for freelancers</div>
         </div>
 
         <div style={{...gCard({background:"#162812"}),
           borderRadius:R.xxl,padding:S[6],
-          boxShadow:"0 24px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(122,184,94,0.15)"}}>
+          boxShadow:"0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12)"}}>
 
           {/* Mode tabs */}
           <div style={{display:"flex",background:"rgba(255,255,255,0.06)",borderRadius:R.lg,padding:S[1],marginBottom:S[5]}}>
@@ -993,7 +887,7 @@ function AuthScreen({onAuth,oauthErr=""}){
               <button key={m} onClick={()=>{setMode(m);setErr("");setPass("");}}
                 style={{flex:1,padding:"8px 0",borderRadius:R.md,border:"none",cursor:"pointer",
                   fontFamily:F.family,fontSize:F.base,fontWeight:F.semibold,transition:"all 0.15s",
-                  background:mode===m?"rgba(122,184,94,0.2)":"transparent",
+                  background:mode===m?"rgba(122,184,94,0.18)":"transparent",
                   color:mode===m?C.textPrimary:C.textMuted}}>
                 {m==="login"?"Sign in":"Create account"}
               </button>
@@ -1046,7 +940,7 @@ function AuthScreen({onAuth,oauthErr=""}){
               )}
             </div>
             {mode==="login"&&(
-              <button onClick={()=>setErr("Password reset: Enter your email then contact support@zenvoy.io")}
+              <button onClick={()=>setErr("Password reset — contact support@zenvoy.io")}
                 style={{background:"none",border:"none",cursor:"pointer",color:C.brand,fontSize:F.xs,
                   fontFamily:F.family,textAlign:"right",padding:0}}>
                 Forgot password?
@@ -1089,7 +983,6 @@ function PricingModal({currentPlan,onClose,onSimulate}){
   const open=(plan)=>{
     if(!plan.checkoutUrl)return;
     window.open(plan.checkoutUrl,"_blank","noopener,noreferrer");
-    toast.success("Payment page opened. Plan upgrades automatically after payment.");
   };
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(12,21,11,0.92)",zIndex:Z.panel+10,
@@ -1144,7 +1037,7 @@ function PricingModal({currentPlan,onClose,onSimulate}){
                   {isCur
                     ?<div style={{textAlign:"center",padding:"10px 0",fontSize:F.base,fontWeight:F.semibold,color:C.green}}>✓ Active plan</div>
                     :plan.id==="free"
-                      ?<Btn onClick={()=>toast.info("To cancel your plan, email support@zenvoy.io")} variant="secondary" fullWidth>Downgrade to Free</Btn>
+                      ?<Btn onClick={()=>toast.info("To cancel, email support@zenvoy.io")} variant="secondary" fullWidth>Downgrade to Free</Btn>
                       :<Btn onClick={()=>open(plan)} variant={plan.id==="pro"?"primary":"brand_ghost"} fullWidth>
                         Get {plan.name} — {plan.label}
                       </Btn>
@@ -1155,7 +1048,7 @@ function PricingModal({currentPlan,onClose,onSimulate}){
           })}
         </div>
         <div style={{textAlign:"center",padding:`0 0 ${S[5]}px`,fontSize:F.xs,color:C.textMuted}}>
-          🔒 Secure payment via Razorpay · 7-day money-back guarantee · Cancel anytime from settings
+          🔒 Secure payment via Lemon Squeezy (Stripe) · 7-day money-back guarantee · Cancel anytime from settings
         </div>
       </div>
     </div>
@@ -1175,8 +1068,8 @@ function Sidebar({page,onNav,badges,plan,onUpgrade,onLogout,userName,userId}){
         <div style={{display:"flex",alignItems:"center",gap:S[3]}}>
           <CPLogo size={34} withText={true}/>
           <div>
-            <div style={{fontSize:F.md,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.02em",lineHeight:1.1}}>Zenvoy</div>
-            <div style={{fontSize:F.xs,color:C.textMuted}}>The AI CRM</div>
+            <div style={{fontSize:F.md,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.02em",lineHeight:1.1}}>ClientPulse</div>
+            <div style={{fontSize:F.xs,color:C.textMuted}}>AI-powered CRM</div>
           </div>
         </div>
       </div>
@@ -1208,8 +1101,8 @@ function Sidebar({page,onNav,badges,plan,onUpgrade,onLogout,userName,userId}){
       <div style={{padding:`${S[3]}px ${S[3]}px ${S[4]}px`}}>
         {plan==="free"&&(
           <button onClick={onUpgrade}
-            style={{width:"100%",background:`linear-gradient(135deg,rgba(122,184,94,0.1),rgba(74,122,54,0.08))`,
-              border:`1px solid ${C.brand}44`,borderRadius:R.lg,padding:`${S[3]}px ${S[4]}px`,
+            style={{width:"100%",background:`linear-gradient(135deg,rgba(122,184,94,0.1),rgba(74,122,54,0.07))`,
+              border:`1px solid rgba(122,184,94,0.25)`,borderRadius:R.lg,padding:`${S[3]}px ${S[4]}px`,
               cursor:"pointer",fontFamily:F.family,marginBottom:S[3],textAlign:"left"}}>
             <div style={{fontSize:F.xs,fontWeight:F.bold,color:C.brand,marginBottom:S[1]}}>✨ Upgrade to Pro</div>
             <div style={{fontSize:F.xs,color:C.textMuted}}>Unlock all features for $39/mo</div>
@@ -1249,7 +1142,7 @@ function Topbar({page,alerts=0,plan,onUpgrade}){
     expenses:"Track project costs and profit margins",templates:"Ready-to-use email templates",
     reports:"Revenue, expenses, and profit insights",settings:"Account and plan settings"};
   return(
-    <header className="zv-topbar" style={{...glass(0.06,20),borderBottom:`1px solid ${C.glassBorder}`,
+    <header style={{...glass(0.06,20),borderBottom:`1px solid ${C.glassBorder}`,
       padding:`0 ${S[6]}px`,height:60,display:"flex",alignItems:"center",
       justifyContent:"space-between",flexShrink:0}}>
       <div>
@@ -1347,7 +1240,7 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
           {msgs.map((m,i)=>(
             <div key={i} style={{display:"flex",flexDirection:"column",alignItems:m.role==="user"?"flex-end":"flex-start"}}>
               {m.role==="assistant"&&<div style={{fontSize:F.xs,fontWeight:F.bold,color:C.textMuted,
-                marginBottom:S[1],textTransform:"uppercase",letterSpacing:"0.06em"}}>✨ Zenvoy AI</div>}
+                marginBottom:S[1],textTransform:"uppercase",letterSpacing:"0.06em"}}>✨ ClientPulse AI</div>}
               <div style={{maxWidth:"90%",
                 background:m.role==="user"?`linear-gradient(135deg,${C.brandDeep},${C.purple})`:"rgba(255,255,255,0.08)",
                 color:C.textPrimary,
@@ -1494,7 +1387,7 @@ function ClientCard({client,onSelect,onAI}){
           ))}
           <button onClick={e=>{e.stopPropagation();onAI(client);}}
             style={{fontSize:F.xs,fontWeight:F.bold,padding:"3px 10px",borderRadius:R.full,
-              background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.25)`,
+              background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
               cursor:"pointer",fontFamily:F.family,transition:"all 0.15s"}}>✨ AI</button>
         </div>
       </div>
@@ -1619,9 +1512,9 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
       <div style={{display:"flex",flexDirection:"column",gap:S[6]}}>
         <div style={{background:`linear-gradient(135deg,rgba(42,74,34,0.85),rgba(26,46,22,0.95))`,
           backdropFilter:"blur(20px)",borderRadius:R.xxl,padding:`${S[8]}px`,textAlign:"center",
-          border:`1px solid rgba(122,184,94,0.25)`,color:C.textPrimary,boxShadow:`0 8px 40px rgba(12,21,11,0.5)`}}>
+          border:`1px solid rgba(122,184,94,0.22)`,color:C.textPrimary,boxShadow:`0 8px 40px rgba(12,21,11,0.5)`}}>
           <div style={{fontSize:56,marginBottom:S[3]}}>⚡</div>
-          <div style={{fontSize:F.xxl,fontWeight:F.black,letterSpacing:"-0.025em",marginBottom:S[3]}}>Welcome to Zenvoy!</div>
+          <div style={{fontSize:F.xxl,fontWeight:F.black,letterSpacing:"-0.025em",marginBottom:S[3]}}>Welcome to ClientPulse!</div>
           <div style={{fontSize:F.base,color:"rgba(255,255,255,0.7)",marginBottom:S[6],maxWidth:480,margin:"0 auto 24px",lineHeight:1.7}}>
             Your AI CRM is ready. Add your first client to start tracking projects, payments, and let AI write your follow-up emails automatically.
           </div>
@@ -1653,7 +1546,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
     <div style={{display:"flex",flexDirection:"column",gap:S[6]}}>
       <div style={{background:`linear-gradient(135deg,rgba(42,74,34,0.85),rgba(26,46,22,0.95))`,
         backdropFilter:"blur(20px)",borderRadius:R.xxl,padding:`${S[6]}px ${S[8]}px`,
-        border:`1px solid rgba(122,184,94,0.25)`,color:C.textPrimary,
+        border:`1px solid rgba(122,184,94,0.22)`,color:C.textPrimary,
         display:"flex",justifyContent:"space-between",alignItems:"center",
         boxShadow:`0 8px 40px rgba(12,21,11,0.6)`}}>
         <div>
@@ -1723,7 +1616,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
                   <span style={{fontSize:F.xs,color:C.textSec,flex:1,lineHeight:1.5}}>{a.text}</span>
                   {a.client&&<button onClick={()=>onAI(a.client)}
                     style={{fontSize:F.xs,fontWeight:F.bold,padding:"3px 9px",borderRadius:R.full,
-                      background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.25)`,
+                      background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
                       cursor:"pointer",fontFamily:F.family,whiteSpace:"nowrap"}}>AI ✨</button>}
                 </div>
               ))}
@@ -1868,13 +1761,9 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
                 <div style={{fontSize:F.xs,color:inv.status==="overdue"?C.red:C.textSec,fontWeight:inv.status==="overdue"?F.bold:F.regular}}>{inv.due||"—"}</div>
                 <div style={{display:"flex",gap:S[2],alignItems:"center"}}>
                   <Bdg label={cfg.label} color={cfg.color} bg={cfg.bg}/>
-                  <button onClick={()=>downloadInvoicePDF(inv,clients)}
-                    style={{background:"rgba(122,184,94,0.08)",border:"1px solid rgba(122,184,94,0.2)",
-                      borderRadius:R.sm,padding:"3px 7px",cursor:"pointer",fontSize:F.xs,
-                      color:C.brandLight,fontWeight:F.bold,fontFamily:F.family}}
-                    title="Download PDF">↓ PDF</button>
+                  <button onClick={()=>downloadInvoicePDF(inv,clients)} style={{background:"rgba(122,184,94,0.08)",border:"1px solid rgba(122,184,94,0.2)",borderRadius:R.sm,padding:"3px 7px",cursor:"pointer",fontSize:F.xs,color:C.brandLight,fontFamily:F.family}} title="PDF">↓</button>
                   {inv.status!=="paid"&&(
-                    <button onClick={()=>{act.markPaid(inv.id);toast.success('Invoice marked as paid!');}}
+                    <button onClick={()=>{act.markPaid(inv.id);toast.success("Invoice marked as paid!");}}
                       style={{background:"rgba(52,211,153,0.15)",border:"1px solid rgba(52,211,153,0.3)",
                         borderRadius:R.sm,padding:"3px 8px",cursor:"pointer",fontSize:F.xs,
                         color:C.green,fontWeight:F.bold,fontFamily:F.family,transition:"all 0.15s"}}
@@ -2069,7 +1958,7 @@ function PipelinePage({clients,onAI,plan,onUpgrade}){
                         <span style={{fontSize:10,color:C.textMuted}}>{c.stage||"—"}</span>
                         <button onClick={()=>onAI(c)}
                           style={{fontSize:10,fontWeight:F.bold,padding:"2px 8px",borderRadius:R.full,
-                            background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.25)`,
+                            background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
                             cursor:"pointer",fontFamily:F.family}}>✨ AI</button>
                       </div>
                     </Card>
@@ -2409,7 +2298,7 @@ function ReportsPage({clients,invoices,timeEntries,expenses,act,plan,onUpgrade})
 
   const exportCSV=()=>{
     const rows=[
-      ["Report","Zenvoy Revenue Report",today(),"","",""],
+      ["Report","ClientPulse Revenue Report",today(),"","",""],
       ["","","","","",""],
       ["Summary","","","","",""],
       ["Total Revenue",fmt$(totalRevenue),"","","",""],
@@ -2571,7 +2460,7 @@ function SettingsPage({auth,plan,onUpgrade,onSimulate,onLogout}){
         <div style={{display:"flex",flexDirection:"column",gap:S[3]}}>
           {[
             ["🔒","Your data stays yours","We never sell or share your client data with anyone."],
-            ["👁","No tracking or ads","Zenvoy has zero analytics trackers and no advertisements."],
+            ["👁","No tracking or ads","ClientPulse has zero analytics trackers and no advertisements."],
             ["💾","Export anytime","Download all your data as CSV from the Reports page whenever you want."],
             ["🗑","Delete your account","Contact support to permanently delete all your data at any time."],
           ].map(([icon,title,desc])=>(
@@ -2647,6 +2536,59 @@ function AppRoot({auth,onLogout}){
 
 export default function Zenvoy(){
   const[auth,setAuth]=useState(()=>loadSession());
-  if(!auth) return <AuthScreen onAuth={d=>{setAuth(d);}}/>;
-  return <AppRoot auth={auth} onLogout={()=>setAuth(null)}/>;
+  const[checking,setChecking]=useState(false);
+  const[oauthErr,setOauthErr]=useState("");
+
+  useEffect(()=>{
+    // Handle Supabase Google OAuth callback
+    const hash=window.location.hash;
+    if(!hash.includes("access_token"))return;
+    const p=new URLSearchParams(hash.replace("#","?"));
+    const token=p.get("access_token");
+    if(!token)return;
+
+    // Clean URL immediately
+    window.history.replaceState({},document.title,window.location.pathname);
+    setChecking(true);
+
+    // Call backend to verify token securely
+    fetch("/api/auth/google/callback",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({access_token:token}),
+    })
+    .then(r=>{
+      if(!r.ok)throw new Error("Server error "+r.status);
+      return r.json();
+    })
+    .then(data=>{
+      if(!data.token)throw new Error("No session token returned");
+      // Decode JWT payload (no secret needed to read)
+      const parts=data.token.split(".");
+      const pl=JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/")));
+      const authData={id:pl.userId,email:pl.email,name:pl.name,plan:pl.plan||"free"};
+      localStorage.setItem("cp_jwt_v1",data.token);
+      saveSession(authData);
+      setAuth(authData);
+    })
+    .catch(e=>{
+      console.error("Google login error:",e.message);
+      setOauthErr("Google sign-in failed. Please try email login or try again.");
+    })
+    .finally(()=>setChecking(false));
+  },[]);
+
+  if(checking)return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
+      background:"linear-gradient(135deg,#05031e,#0d0826)",fontFamily:"Inter,system-ui,sans-serif"}}>
+      <div style={{textAlign:"center",color:"rgba(255,255,255,0.7)"}}>
+        <div style={{fontSize:40,marginBottom:16}}>⚡</div>
+        <div style={{fontSize:15,fontWeight:600,marginBottom:6}}>Signing you in…</div>
+        <div style={{fontSize:12,opacity:0.5}}>Just a moment</div>
+      </div>
+    </div>
+  );
+
+  if(!auth)return <AuthScreen onAuth={d=>setAuth(d)} oauthErr={oauthErr}/>;
+  return <AppRoot auth={auth} onLogout={()=>{clearSession();setAuth(null);}}/>;
 }
