@@ -6,26 +6,28 @@ if(typeof document!=="undefined"&&!document.getElementById("zv-styles")){
   _l.href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap";
   document.head.appendChild(_l);
   const _s=document.createElement("style");_s.id="zv-styles";
-  _s.textContent=`*{box-sizing:border-box}body{margin:0;background:#0c150b;color:#f0ebe0;font-family:'DM Sans',system-ui,sans-serif}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111f0f}::-webkit-scrollbar-thumb{background:#3d6634;border-radius:99px}@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(max-width:768px){.zv-sidebar{display:none!important}.zv-mob-nav{display:flex!important}.zv-page{padding:16px 16px 80px!important}}@media(min-width:769px){.zv-mob-nav{display:none!important}}`;
+  _s.textContent="*{box-sizing:border-box}body{margin:0;background:#0a1a0a;color:#f2ead8;font-family:'DM Sans',system-ui,sans-serif}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a1a0a}::-webkit-scrollbar-thumb{background:#2d5c2d}@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(max-width:768px){.zv-sidebar{display:none!important}.zv-mob-nav{display:flex!important}.zv-page{padding:16px 16px 80px!important}}@media(min-width:769px){.zv-mob-nav{display:none!important}}";
   document.head.appendChild(_s);
 }
 
 let _tq=[],_ts=null;
 const toast={_i:0,
-  show:(msg,type="success",dur=3400)=>{const id=++toast._i;_tq=[..._tq,{id,msg,type}];if(_ts)_ts([..._tq]);setTimeout(()=>{_tq=_tq.filter(t=>t.id!==id);if(_ts)_ts([..._tq]);},dur);},
-  success:m=>toast.show(m,"success"),error:m=>toast.show(m,"error",5000),info:m=>toast.show(m,"info"),
+  show:(msg,type,dur)=>{dur=dur||3400;const id=++toast._i;_tq=[..._tq,{id,msg,type:type||"success"}];if(_ts)_ts([..._tq]);setTimeout(()=>{_tq=_tq.filter(t=>t.id!==id);if(_ts)_ts([..._tq]);},dur);},
+  success:function(m){toast.show(m,"success");},
+  error:function(m){toast.show(m,"error",5000);},
+  info:function(m){toast.show(m,"info");},
 };
 function ToastContainer(){
   const[ts,setTs]=useState([]);
-  useEffect(()=>{_ts=setTs;return()=>{_ts=null;};},[]);
+  useEffect(function(){_ts=setTs;return function(){_ts=null;};},[]);
   if(!ts.length)return null;
-  const cl={success:{bg:"#1a3015",bo:"#4a7a36",ic:"✓",c:"#a8d48a"},error:{bg:"#3a1414",bo:"#7a3636",ic:"✕",c:"#d48a8a"},info:{bg:"#1a2e16",bo:"#3d6634",ic:"ℹ",c:"#8cb87a"}};
+  var cl={success:{bg:"#132613",bo:"#3d7a28",ic:"OK",c:"#9dd67a"},error:{bg:"#2a0f0f",bo:"#7a2828",ic:"!",c:"#e07a7a"},info:{bg:"#0f220f",bo:"#2d5c2d",ic:"i",c:"#6db84f"}};
   return(
     <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8,pointerEvents:"none"}}>
-      {ts.map(t=>{const c=cl[t.type]||cl.info;return(
-        <div key={t.id} style={{background:c.bg,border:`1px solid ${c.bo}`,borderRadius:10,padding:"11px 16px",display:"flex",alignItems:"center",gap:10,minWidth:250,maxWidth:360,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",animation:"toastIn 0.22s ease",fontFamily:"'DM Sans',sans-serif"}}>
-          <span style={{color:c.c,fontSize:13,fontWeight:700,flexShrink:0}}>{c.ic}</span>
-          <span style={{color:"#f0ebe0",fontSize:12,lineHeight:1.5}}>{t.msg}</span>
+      {ts.map(function(t){var cv=cl[t.type]||cl.info;return(
+        <div key={t.id} style={{background:cv.bg,border:"1px solid "+cv.bo,borderRadius:6,padding:"11px 16px",display:"flex",alignItems:"center",gap:10,minWidth:250,maxWidth:360,animation:"toastIn 0.2s ease",fontFamily:"'DM Sans',sans-serif"}}>
+          <span style={{color:cv.c,fontSize:11,fontWeight:700,flexShrink:0,textTransform:"uppercase",letterSpacing:"0.08em"}}>{cv.ic}</span>
+          <span style={{color:"#f2ead8",fontSize:12,lineHeight:1.5}}>{t.msg}</span>
         </div>
       );})}
     </div>
@@ -33,14 +35,14 @@ function ToastContainer(){
 }
 
 function MobileNav({page,onNav,badges}){
-  const items=[{id:"dashboard",label:"Home",ic:"◈"},{id:"clients",label:"Clients",ic:"⬡",bk:"overdueClients"},{id:"invoices",label:"Invoices",ic:"◻",bk:"overdueInvoices"},{id:"tasks",label:"Tasks",ic:"◇",bk:"highPriorityTasks"},{id:"settings",label:"More",ic:"⚙"}];
+  var items=[{id:"dashboard",label:"Home",ic:"◈"},{id:"clients",label:"Clients",ic:"⬡",bk:"overdueClients"},{id:"invoices",label:"Invoices",ic:"◻",bk:"overdueInvoices"},{id:"tasks",label:"Tasks",ic:"◇",bk:"highPriorityTasks"},{id:"settings",label:"More",ic:"⚙"}];
   return(
-    <nav className="zv-mob-nav" style={{position:"fixed",bottom:0,left:0,right:0,background:"#111f0f",borderTop:"1px solid rgba(122,184,94,0.15)",justifyContent:"space-around",alignItems:"center",padding:"6px 0 calc(6px + env(safe-area-inset-bottom,0px))",zIndex:500}}>
-      {items.map(it=>{const active=page===it.id;const badge=it.bk?badges[it.bk]:0;return(
-        <button key={it.id} onClick={()=>onNav(it.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"4px 10px",color:active?"#a8d48a":"rgba(240,235,224,0.38)",fontFamily:"'DM Sans',sans-serif",position:"relative",transition:"color 0.15s",minWidth:52}}>
+    <nav className="zv-mob-nav" style={{position:"fixed",bottom:0,left:0,right:0,background:"#081508",borderTop:"1px solid #1e3d1e",justifyContent:"space-around",alignItems:"center",padding:"6px 0",zIndex:500}}>
+      {items.map(function(it){var active=page===it.id;var badge=it.bk?badges[it.bk]:0;return(
+        <button key={it.id} onClick={function(){onNav(it.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"4px 10px",color:active?"#9dd67a":"#7a7060",fontFamily:"'DM Sans',sans-serif",position:"relative",minWidth:52}}>
           <span style={{fontSize:17,lineHeight:1}}>{it.ic}</span>
-          <span style={{fontSize:9,fontWeight:active?700:400,letterSpacing:"0.04em"}}>{it.label}</span>
-          {badge>0&&<span style={{position:"absolute",top:0,right:4,background:"#c0544a",color:"#fff",fontSize:9,fontWeight:700,borderRadius:99,padding:"1px 5px"}}>{badge}</span>}
+          <span style={{fontSize:9,fontWeight:active?700:400,letterSpacing:"0.06em",textTransform:"uppercase"}}>{it.label}</span>
+          {badge>0&&<span style={{position:"absolute",top:0,right:4,background:"#b84f4f",color:"#fff",fontSize:9,fontWeight:700,borderRadius:3,padding:"1px 5px"}}>{badge}</span>}
         </button>
       );})}
     </nav>
@@ -49,27 +51,27 @@ function MobileNav({page,onNav,badges}){
 
 function OnboardingChecklist({steps,onDismiss,onNavigate}){
   if(!steps||Object.values(steps).every(Boolean))return null;
-  const items=[{key:"addedClient",label:"Add your first client",page:"clients"},{key:"createdInvoice",label:"Create your first invoice",page:"invoices"},{key:"triedAI",label:"Try the AI email drafter",page:"clients"}];
-  const count=Object.values(steps).filter(Boolean).length;
-  const pct=Math.round((count/items.length)*100);
+  var items=[{key:"addedClient",label:"Add your first client",page:"clients"},{key:"createdInvoice",label:"Create your first invoice",page:"invoices"},{key:"triedAI",label:"Try AI email drafter",page:"clients"}];
+  var count=Object.values(steps).filter(Boolean).length;
+  var pct=Math.round((count/items.length)*100);
   return(
-    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:14,padding:"18px 20px",marginBottom:20,position:"relative"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:13,fontWeight:700,color:"#f0ebe0"}}>Get started — {count}/{items.length} done</div>
-        <button onClick={onDismiss} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(240,235,224,0.3)",fontSize:18,lineHeight:1,padding:2}}>×</button>
+    <div style={{background:"#0f220f",border:"1px solid #2d5c2d",borderRadius:8,padding:"18px 20px",marginBottom:20,position:"relative"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <span style={{fontSize:12,fontWeight:700,color:"#f2ead8",textTransform:"uppercase",letterSpacing:"0.08em"}}>Get started — {count}/{items.length}</span>
+        <button onClick={onDismiss} style={{background:"none",border:"none",cursor:"pointer",color:"#7a7060",fontSize:16,lineHeight:1,padding:2}}>×</button>
       </div>
-      <div style={{height:3,background:"rgba(122,184,94,0.12)",borderRadius:99,marginBottom:14,overflow:"hidden"}}>
-        <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#5c8c48,#a8d48a)",borderRadius:99,transition:"width 0.6s ease"}}/>
+      <div style={{height:2,background:"#1e3d1e",marginBottom:14}}>
+        <div style={{height:"100%",width:pct+"%",background:"#6db84f",transition:"width 0.5s ease"}}/>
       </div>
-      {items.map(item=>(
-        <button key={item.key} onClick={()=>onNavigate(item.page)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",background:steps[item.key]?"rgba(122,184,94,0.06)":"rgba(240,235,224,0.02)",border:`1px solid ${steps[item.key]?"rgba(122,184,94,0.22)":"rgba(240,235,224,0.06)"}`,borderRadius:8,padding:"9px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginBottom:6,transition:"all 0.15s"}}>
-          <div style={{width:20,height:20,borderRadius:"50%",flexShrink:0,background:steps[item.key]?"rgba(122,184,94,0.2)":"transparent",border:`1.5px solid ${steps[item.key]?"#7ab85e":"rgba(240,235,224,0.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:steps[item.key]?"#7ab85e":"rgba(240,235,224,0.3)"}}>
-            {steps[item.key]?"✓":"·"}
+      {items.map(function(item){return(
+        <button key={item.key} onClick={function(){onNavigate(item.page);}} style={{display:"flex",alignItems:"center",gap:10,width:"100%",background:"transparent",border:"1px solid "+(steps[item.key]?"#2d5c2d":"#1e3d1e"),borderRadius:6,padding:"9px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginBottom:6}}>
+          <div style={{width:18,height:18,borderRadius:3,flexShrink:0,background:steps[item.key]?"#3d7a28":"transparent",border:"1.5px solid "+(steps[item.key]?"#6db84f":"#2d5c2d"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#9dd67a"}}>
+            {steps[item.key]?"✓":""}
           </div>
-          <span style={{fontSize:12,color:steps[item.key]?"rgba(240,235,224,0.38)":"#f0ebe0",textDecoration:steps[item.key]?"line-through":"none",fontWeight:500}}>{item.label}</span>
-          {!steps[item.key]&&<span style={{marginLeft:"auto",fontSize:11,color:"#5c8c48"}}>→</span>}
+          <span style={{fontSize:12,color:steps[item.key]?"#7a7060":"#c8bfa8",textDecoration:steps[item.key]?"line-through":"none",fontWeight:500}}>{item.label}</span>
+          {!steps[item.key]&&<span style={{marginLeft:"auto",fontSize:11,color:"#3d7a28"}}>→</span>}
         </button>
-      ))}
+      );})}
     </div>
   );
 }
@@ -77,68 +79,70 @@ function OnboardingChecklist({steps,onDismiss,onNavigate}){
 function RevenueGoal({goal,collected,onSetGoal}){
   const[editing,setEditing]=useState(false);
   const[val,setVal]=useState(String(goal||""));
-  const pct=goal>0?Math.min(100,Math.round((collected/goal)*100)):0;
-  const col=pct>=100?"#7ab85e":pct>=60?"#d4a043":"#a8d48a";
-  if(!goal&&!editing)return(<button onClick={()=>setEditing(true)} style={{background:"rgba(122,184,94,0.04)",border:"1px dashed rgba(122,184,94,0.2)",borderRadius:10,padding:"10px 14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",color:"#5c8c48",fontSize:12,width:"100%",textAlign:"left",marginBottom:16}}>+ Set a monthly revenue goal</button>);
+  var pct=goal>0?Math.min(100,Math.round((collected/goal)*100)):0;
+  var col=pct>=100?"#6db84f":pct>=60?"#c49a3a":"#9dd67a";
+  if(!goal&&!editing)return(
+    <button onClick={function(){setEditing(true);}} style={{background:"transparent",border:"1px dashed #2d5c2d",borderRadius:6,padding:"10px 14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",color:"#3d7a28",fontSize:12,width:"100%",textAlign:"left",marginBottom:16}}>
+      + Set monthly revenue goal
+    </button>
+  );
   if(editing)return(
-    <div style={{background:"#162812",border:"1px solid rgba(122,184,94,0.22)",borderRadius:10,padding:"12px 14px",marginBottom:16}}>
-      <div style={{fontSize:11,color:"#5c8c48",marginBottom:8,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Monthly goal ($)</div>
+    <div style={{background:"#0f220f",border:"1px solid #2d5c2d",borderRadius:6,padding:"12px 14px",marginBottom:16}}>
+      <div style={{fontSize:10,color:"#3d7a28",marginBottom:8,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em"}}>Monthly goal ($)</div>
       <div style={{display:"flex",gap:8}}>
-        <input value={val} onChange={e=>setVal(e.target.value)} type="number" placeholder="5000" autoFocus style={{flex:1,background:"rgba(122,184,94,0.06)",border:"1px solid rgba(122,184,94,0.3)",borderRadius:7,padding:"7px 11px",color:"#f0ebe0",fontSize:13,fontFamily:"'DM Sans',sans-serif",outline:"none"}}/>
-        <button onClick={()=>{onSetGoal(Number(val));setEditing(false);}} style={{background:"linear-gradient(135deg,#7ab85e,#4a7a36)",color:"#0c150b",border:"none",borderRadius:7,padding:"7px 14px",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>Set</button>
-        <button onClick={()=>setEditing(false)} style={{background:"none",border:"1px solid rgba(240,235,224,0.1)",borderRadius:7,padding:"7px 10px",cursor:"pointer",color:"rgba(240,235,224,0.35)",fontSize:12}}>✕</button>
+        <input value={val} onChange={function(e){setVal(e.target.value);}} type="number" placeholder="5000" autoFocus style={{flex:1,background:"#132613",border:"1px solid #2d5c2d",borderRadius:4,padding:"7px 10px",color:"#f2ead8",fontSize:13,fontFamily:"'DM Sans',sans-serif",outline:"none"}}/>
+        <button onClick={function(){onSetGoal(Number(val));setEditing(false);}} style={{background:"#6db84f",color:"#0a1a0a",border:"none",borderRadius:4,padding:"7px 14px",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>Set</button>
+        <button onClick={function(){setEditing(false);}} style={{background:"transparent",border:"1px solid #1e3d1e",borderRadius:4,padding:"7px 10px",cursor:"pointer",color:"#7a7060",fontSize:12}}>✕</button>
       </div>
     </div>
   );
   return(
-    <div onClick={()=>setEditing(true)} style={{background:"#162812",border:"1px solid rgba(122,184,94,0.18)",borderRadius:10,padding:"12px 14px",cursor:"pointer",marginBottom:16}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-        <span style={{fontSize:11,color:"#5c8c48",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>Monthly goal</span>
+    <div onClick={function(){setEditing(true);}} style={{background:"#0f220f",border:"1px solid #1e3d1e",borderRadius:6,padding:"12px 14px",cursor:"pointer",marginBottom:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+        <span style={{fontSize:10,color:"#3d7a28",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em"}}>Monthly goal</span>
         <span style={{fontSize:12,fontWeight:700,color:col}}>{pct}% · ${collected.toLocaleString()} / ${goal.toLocaleString()}</span>
       </div>
-      <div style={{height:5,background:"rgba(122,184,94,0.1)",borderRadius:99,overflow:"hidden"}}>
-        <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${col}77,${col})`,borderRadius:99,transition:"width 0.8s ease"}}/>
+      <div style={{height:3,background:"#1e3d1e"}}>
+        <div style={{height:"100%",width:pct+"%",background:col,transition:"width 0.6s ease"}}/>
       </div>
-      {pct>=100&&<div style={{fontSize:11,color:"#7ab85e",marginTop:5,fontWeight:600}}>Goal reached this month!</div>}
+      {pct>=100&&<div style={{fontSize:11,color:"#6db84f",marginTop:5,fontWeight:600}}>Goal reached!</div>}
     </div>
   );
 }
 
 function downloadInvoicePDF(inv,clients){
-  const c=clients.find(x=>x.id===inv.clientId)||{name:inv.client,email:"",company:""};
-  const paid=inv.status==="paid";
-  const statusBg=paid?"#e8f5e0":"#fef3e0";
-  const statusColor=paid?"#2d6a1f":"#8a5700";
-  const dueHtml=inv.due?"<h3 style='margin-top:10px'>Due</h3><p>"+inv.due+"</p>":"";
-  const html="<!DOCTYPE html><html><head><meta charset='UTF-8'><style>"
+  var c=clients.find(function(x){return x.id===inv.clientId;})||{name:inv.client,email:"",company:""};
+  var paid=inv.status==="paid";
+  var statusBg=paid?"#e8f5e0":"#fef3e0";
+  var statusCol=paid?"#2d6a1f":"#8a5700";
+  var dueHtml=inv.due?"<h3>Due</h3><p>"+inv.due+"</p>":"";
+  var html="<!DOCTYPE html><html><head><meta charset='UTF-8'><style>"
     +"body{font-family:Arial,sans-serif;padding:60px;max-width:680px;margin:0 auto;color:#1a1a1a}"
-    +".logo{font-size:22px;font-weight:700;color:#2d4a22;margin-bottom:44px}"
-    +".logo span{color:#7ab85e;font-weight:300}"
+    +".logo{font-size:20px;font-weight:700;color:#1a3319;margin-bottom:40px}"
+    +".logo span{color:#4a7a36;font-weight:300}"
     +"h1{font-size:32px;font-weight:300;margin:0 0 4px}"
-    +".num{font-size:12px;color:#999;margin-bottom:44px}"
-    +".row{display:flex;justify-content:space-between;margin-bottom:36px}"
-    +".col h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin:0 0 5px}"
+    +".num{font-size:12px;color:#999;margin-bottom:40px}"
+    +".row{display:flex;justify-content:space-between;margin-bottom:32px}"
+    +".col h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin:0 0 4px}"
     +".col p{font-size:13px;color:#333;margin:0;line-height:1.6}"
-    +"table{width:100%;border-collapse:collapse;margin:28px 0}"
-    +"th{font-size:10px;text-transform:uppercase;color:#aaa;border-bottom:1px solid #eee;padding:7px 0;text-align:left}"
-    +"td{padding:13px 0;border-bottom:1px solid #f5f5f5;font-size:13px}"
-    +".tot td{border-bottom:none;font-size:17px;font-weight:700;padding-top:18px}"
-    +".status{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;"
-    +"background:"+statusBg+";color:"+statusColor+"}"
-    +".footer{margin-top:52px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#ccc;text-align:center}"
+    +"table{width:100%;border-collapse:collapse;margin:24px 0}"
+    +"th{font-size:10px;text-transform:uppercase;color:#aaa;border-bottom:1px solid #eee;padding:6px 0;text-align:left}"
+    +"td{padding:12px 0;border-bottom:1px solid #f0f0f0;font-size:13px}"
+    +".tot td{border:none;font-size:16px;font-weight:700;padding-top:16px}"
+    +".status{padding:2px 8px;font-size:10px;font-weight:700;text-transform:uppercase;background:"+statusBg+";color:"+statusCol+"}"
+    +".footer{margin-top:48px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#ccc;text-align:center}"
     +"</style></head><body>"
     +"<div class='logo'>zen<span>voy</span></div>"
     +"<h1>Invoice</h1>"
-    +"<div class='num'>"+inv.id+" &middot; <span class='status'>"+inv.status.toUpperCase()+"</span></div>"
+    +"<div class='num'>"+inv.id+" <span class='status'>"+inv.status.toUpperCase()+"</span></div>"
     +"<div class='row'><div class='col'><h3>Billed to</h3><p><strong>"+c.name+"</strong><br>"+(c.company||"")+"<br>"+(c.email||"")+"</p></div>"
     +"<div class='col' style='text-align:right'><h3>Date</h3><p>"+(inv.date||"")+"</p>"+dueHtml+"</div></div>"
     +"<table><tr><th>Description</th><th style='text-align:right'>Amount</th></tr>"
     +"<tr><td>"+(inv.desc||"Services rendered")+"</td><td style='text-align:right'>$"+Number(inv.amount).toLocaleString()+"</td></tr>"
     +"<tr class='tot'><td>Total</td><td style='text-align:right'>$"+Number(inv.amount).toLocaleString()+"</td></tr></table>"
-    +"<div class='footer'>Generated by Zenvoy &middot; zenvoy.io</div>"
-    +"</body></html>";
-  const w=window.open("","_blank","width=800,height=900");
-  w.document.write(html);w.document.close();w.onload=()=>w.print();
+    +"<div class='footer'>Zenvoy · zenvoy.io</div></body></html>";
+  var w=window.open("","_blank","width=800,height=900");
+  w.document.write(html);w.document.close();w.onload=function(){w.print();};
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -186,41 +190,58 @@ const SEC = {
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════
 const C = {
-  brand:"#7ab85e",brandDeep:"#4a7a36",brandGlow:"rgba(122,184,94,0.28)",
-  brandLight:"#a8d48a",brandMid:"#5c8c48",
-  cream:"#f5f0e4",creamDark:"#e8e0cc",
-  green:"#7ab85e",greenGlow:"rgba(122,184,94,0.3)",
-  amber:"#d4a043",amberGlow:"rgba(212,160,67,0.3)",
-  red:"#c0544a",redGlow:"rgba(192,84,74,0.3)",
-  purple:"#8b6db0",purpleGlow:"rgba(139,109,176,0.3)",
-  teal:"#4a9a8a",white:"#ffffff",
-  bg:"#0c150b",bgMid:"#111f0f",bgCard:"#1a2e16",bgSurface:"#162812",
-  glass:"rgba(26,46,22,0.6)",glassMid:"rgba(26,46,22,0.8)",
-  glassHigh:"rgba(26,46,22,0.95)",
-  glassBorder:"rgba(122,184,94,0.18)",
-  glassBorderHover:"rgba(122,184,94,0.42)",
-  glassBorderFocus:"rgba(122,184,94,0.65)",
-  textPrimary:"#f0ebe0",textSec:"rgba(240,235,224,0.65)",
-  textMuted:"rgba(240,235,224,0.35)",textBrand:"#a8d48a",
+  // Core palette
+  bg:"#0a1a0a",        // near-black forest green
+  bgMid:"#0f220f",     // card bg
+  bgCard:"#132613",    // elevated card
+  bgHover:"#1a3319",   // hover state
+  sidebar:"#081508",   // sidebar darker
+  // Brand
+  brand:"#6db84f",     // pistachio green
+  brandDeep:"#3d7a28", // dark green
+  brandLight:"#9dd67a",// light pistachio
+  cream:"#f2ead8",     // cream text
+  creamDim:"#c8bfa8",  // dimmed cream
+  creamMuted:"#7a7060",// muted cream
+  // Borders — solid, no blur
+  border:"#1e3d1e",    // default border
+  borderStrong:"#2d5c2d",// strong border
+  borderBrand:"#4a7a36",  // brand border
+  // Semantic
+  green:"#6db84f",greenGlow:"none",
+  amber:"#c49a3a",amberGlow:"none",
+  red:"#b84f4f",redGlow:"none",
+  purple:"#7a5fa8",purpleGlow:"none",
+  white:"#ffffff",
+  // Legacy aliases (keep existing code working)
+  glassBorder:"#1e3d1e",
+  glassBorderHover:"#4a7a36",
+  glassBorderFocus:"#6db84f",
+  textPrimary:"#f2ead8",
+  textSec:"#c8bfa8",
+  textMuted:"#7a7060",
+  textBrand:"#9dd67a",
+  glass:"#132613",glassMid:"#1a3319",glassHigh:"#1e3d1e",
 };
 const R={sm:6,md:10,lg:14,xl:18,xxl:24,full:9999};
 const F={
-  family:"'DM Sans',system-ui,sans-serif",serif:"'Fraunces',Georgia,serif",mono:"monospace",
+  family:"'DM Sans',system-ui,sans-serif",serif:"'Fraunces',Georgia,serif",mono:"'DM Mono',monospace",
   xs:10,sm:11,base:13,md:14,lg:16,xl:20,xxl:26,
   regular:400,medium:500,semibold:600,bold:700,black:800,
 };
 const S={1:4,2:8,3:12,4:16,5:20,6:24,8:32,10:40,12:48};
 const Z={dropdown:100,modal:200,panel:300,toast:400};
-const glass=(a=0.06,b=20)=>({
-  background:`rgba(26,46,22,${a*10})`,
-  backdropFilter:`blur(${b}px)`,
-  WebkitBackdropFilter:`blur(${b}px)`,
-  border:`1px solid ${C.glassBorder}`,
+const glass=()=>({
+  background:C.bgCard,
+  border:`1px solid ${C.border}`,
 });
 const gCard=(ex={})=>({
-  background:C.bgCard,borderRadius:R.xl,
-  border:`1px solid ${C.glassBorder}`,
-  boxShadow:"0 4px 24px rgba(0,0,0,0.35)",...ex});
+  background:C.bgCard,
+  borderRadius:R.lg,
+  border:`1px solid ${C.border}`,
+  boxShadow:"none",
+  ...ex
+});
 
 // ═══════════════════════════════════════════════════════════════
 // PLAN DEFINITIONS — comprehensive feature gating
@@ -294,16 +315,16 @@ const hasPlan=(cur,req)=>(planOrder[cur]||0)>=(planOrder[req]||0);
 // DOMAIN CONSTANTS
 // ═══════════════════════════════════════════════════════════════
 const CLIENT_STATUS={
-  active:   {label:"Active",   color:C.green, bg:"rgba(52,211,153,0.18)"},
-  overdue:  {label:"Overdue",  color:C.red,   bg:"rgba(248,113,113,0.18)"},
-  prospect: {label:"Prospect", color:C.amber, bg:"rgba(251,191,36,0.18)"},
-  completed:{label:"Completed",color:C.textSec,bg:"rgba(255,255,255,0.10)"},
+  active:   {label:"Active",   color:C.green, bg:"#132613"},
+  overdue:  {label:"Overdue",  color:C.red,   bg:"#2a1010"},
+  prospect: {label:"Prospect", color:C.amber, bg:"#1e1a0a"},
+  completed:{label:"Completed",color:C.textSec,bg:"#0f220f"},
 };
 const INVOICE_STATUS={
-  draft:  {label:"Draft",  color:C.textSec,bg:"rgba(255,255,255,0.10)"},
-  sent:   {label:"Sent",   color:C.brand,  bg:"rgba(129,140,248,0.18)"},
-  paid:   {label:"Paid",   color:C.green,  bg:"rgba(52,211,153,0.18)"},
-  overdue:{label:"Overdue",color:C.red,    bg:"rgba(248,113,113,0.18)"},
+  draft:  {label:"Draft",  color:C.textSec,bg:"#0f220f"},
+  sent:   {label:"Sent",   color:C.brand,  bg:"#0f1a22"},
+  paid:   {label:"Paid",   color:C.green,  bg:"#132613"},
+  overdue:{label:"Overdue",color:C.red,    bg:"#2a1010"},
 };
 const PRIORITY={high:{label:"High",color:C.red},medium:{label:"Medium",color:C.amber},low:{label:"Low",color:C.green}};
 const AVATAR_COLORS=[C.brand,C.green,C.amber,C.red,C.purple,C.cyan,C.teal,C.pink];
@@ -378,7 +399,7 @@ const saveUsers = u => { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)
 const fmt$  = n => "$"+Number(n||0).toLocaleString("en-US");
 const daysAgo = d => Math.floor((Date.now()-new Date(d))/86400000);
 const today   = () => new Date().toISOString().split("T")[0];
-const uid     = () => crypto.randomUUID?.()|| (Date.now().toString(36)+Math.random().toString(36).slice(2,10));
+const uid     = () => (crypto.randomUUID?crypto.randomUUID():null)|| (Date.now().toString(36)+Math.random().toString(36).slice(2,10));
 const ini     = n => (n||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 const pctPaid = (p=0,t=1) => Math.min(100,Math.round((p/t)*100));
 const parseTags= t => Array.isArray(t)?t:(t||"").split(",").map(s=>SEC.sanitize(s)).filter(Boolean);
@@ -399,14 +420,14 @@ const healthColor = s => s>=70?C.green:s>=40?C.amber:C.red;
 
 const buildSys = c => `You are Zenvoy AI — a revenue-focused assistant for freelancers.
 Client: ${c.name} | ${c.company} | ${c.email}
-Project: "${c.project}" | Value: $${c.value?.toLocaleString()} | Paid: $${(c.paid||0).toLocaleString()}
+Project: "${c.project}" | Value: $${(c.value!=null?c.value.toLocaleString():"0")} | Paid: $${(c.paid||0).toLocaleString()}
 Status: ${c.status} | Last contact: ${daysAgo(c.lastContact||today())}d ago
 Invoice pending: ${c.invoicePending?"Yes":"No"} | Due: ${c.dueDate||"Not set"}
 Notes: ${c.notes||"None"}
 Rules: address by first name only, under 110 words, warm but confident, format: "Subject: ...\n\n[body]", sign "Best,\n[Your Name]"`.trim();
 
 const buildQ = (id,c) => ({
-  invoice_reminder:`Draft a ${daysAgo(c.lastContact||today())>21?"firm":"polite"} invoice reminder for "${c.project}" ($${c.value?.toLocaleString()} outstanding).`,
+  invoice_reminder:`Draft a ${daysAgo(c.lastContact||today())>21?"firm":"polite"} invoice reminder for "${c.project}" ($${(c.value!=null?c.value.toLocaleString():"0")} outstanding).`,
   warm_checkin:`Draft a warm non-pushy check-in for ${c.name}. Don't mention invoices.`,
   upsell:`Draft an email proposing a follow-on retainer after "${c.project}" wraps up. Focus on ROI they've already seen.`,
   update_request:`Draft an email requesting ${c.name}'s feedback or approvals to move the project forward.`,
@@ -479,7 +500,7 @@ function reducer(s,{type:t,p}){
     case A.PRICING: return{...base,ui:{...base.ui,pricing:p}};
     case A.PLAN:    return{...base,plan:p,ui:{...base.ui,pricing:false}};
     case A.AI_USED: return{...base,aiUsed:base.aiUsed+1};
-    case "ONBOARD_STEP": return{...base,onboarding:{...base.onboarding,steps:{...(base.onboarding?.steps||{}),...p}}};
+    case "ONBOARD_STEP": return{...base,onboarding:{...base.onboarding,steps:{...((base.onboarding&&base.onboarding.steps)||{}),...p}}};
     case "ONBOARD_DISMISS": return{...base,onboarding:{...base.onboarding,dismissed:true}};
     case "GOAL_SET": return{...base,revenueGoal:p};
     default: return base;
@@ -555,9 +576,9 @@ async function callAI(sys,hist,text){
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({system:sys,messages:[...hist,{role:"user",content:text}]}),
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API ${res.status}`);}
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error((e&&e.error&&e.error.message)||`API ${res.status}`);}
   const d=await res.json();
-  return d.content?.map(b=>b.text||"").join("")||"";
+  return d.content&&d.content.map(b=>b.text||"").join("")||"";
 }
 function useAIChat(client){
   const[msgs,setMsgs]=useState([]);
@@ -586,14 +607,14 @@ function Btn({children,onClick,variant="secondary",size="md",disabled=false,full
   const[hov,setHov]=useState(false);
   const sz={sm:{fontSize:F.xs,padding:"5px 12px",borderRadius:R.md},md:{fontSize:F.base,padding:"9px 18px",borderRadius:R.md},lg:{fontSize:F.md,padding:"12px 24px",borderRadius:R.lg}};
   const vt={
-    primary:    {bg:`linear-gradient(135deg,${C.brandLight},${C.brandMid})`,co:"#0c150b",bo:"none",sh:`0 4px 20px ${C.brandGlow}`},
-    secondary:  {bg:hov?C.glassMid:C.glass,co:C.textPrimary,bo:`1px solid ${C.glassBorder}`,sh:"none"},
-    ghost:      {bg:hov?"rgba(255,255,255,0.08)":"transparent",co:C.textSec,bo:"none",sh:"none"},
-    danger:     {bg:`linear-gradient(135deg,${C.red},#ef4444)`,co:C.white,bo:"none",sh:`0 4px 16px ${C.redGlow}`},
-    success:    {bg:`linear-gradient(135deg,${C.green},#059669)`,co:C.white,bo:"none",sh:`0 4px 16px ${C.greenGlow}`},
-    brand_ghost:{bg:hov?"rgba(122,184,94,0.18)":"rgba(122,184,94,0.08)",co:C.brandLight,bo:`1px solid rgba(122,184,94,0.28)`,sh:"none"},
-    amber:      {bg:`linear-gradient(135deg,${C.amber},#b8880f)`,co:"#f0ebe0",bo:"none",sh:`0 4px 20px ${C.amberGlow}`},
-    google:     {bg:hov?"rgba(245,240,228,0.10)":"rgba(245,240,228,0.05)",co:C.textPrimary,bo:`1px solid rgba(122,184,94,0.25)`,sh:"none"},
+    primary:    {bg:C.brand,co:C.bg,bo:"none",sh:"none"},
+    secondary:  {bg:hov?C.bgHover:C.bgCard,co:C.cream,bo:`1px solid ${C.border}`,sh:"none"},
+    ghost:      {bg:"transparent",co:C.creamMuted,bo:"none",sh:"none"},
+    danger:     {bg:C.red,co:C.white,bo:"none",sh:"none"},
+    success:    {bg:C.brand,co:C.bg,bo:"none",sh:"none"},
+    brand_ghost:{bg:hov?C.bgHover:C.bgCard,co:C.brandLight,bo:`1px solid ${C.borderBrand}`,sh:"none"},
+    amber:      {bg:C.amber,co:C.bg,bo:"none",sh:"none"},
+    google:     {bg:hov?C.bgHover:C.bgMid,co:C.cream,bo:`1px solid ${C.border}`,sh:"none"},
   };
   const v=vt[variant]||vt.secondary;const ss=sz[size]||sz.md;
   return(
@@ -601,7 +622,7 @@ function Btn({children,onClick,variant="secondary",size="md",disabled=false,full
       style={{...ss,background:v.bg,color:v.co,border:v.bo||"none",boxShadow:v.sh,fontFamily:F.family,
         fontWeight:F.semibold,cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.45:1,
         display:"inline-flex",alignItems:"center",justifyContent:"center",gap:S[2],whiteSpace:"nowrap",
-        transition:"all 0.15s",width:fullWidth?"100%":undefined,backdropFilter:"blur(8px)",...ex}}>
+        transition:"all 0.15s",width:fullWidth?"100%":undefined,...ex}}>
       {children}
     </button>
   );
@@ -617,10 +638,9 @@ function Inp({label,value,onChange,type="text",placeholder="",required=false,sty
         autoComplete={autoComplete} onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)}
         style={{padding:"9px 13px",borderRadius:R.md,fontSize:F.base,fontFamily:F.family,
           color:C.textPrimary,outline:"none",transition:"all 0.15s",
-          background:foc?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
-          border:`1px solid ${foc?C.glassBorderFocus:C.glassBorder}`,
-          boxShadow:foc?`0 0 0 3px rgba(122,184,94,0.12)`:"none",
-          backdropFilter:"blur(8px)",...ex}}/>
+          background:C.bgMid,
+          border:`1px solid ${foc?C.glassBorderFocus:C.border}`,
+          boxShadow:"none",...ex}}/>
     </div>
   );
 }
@@ -633,8 +653,8 @@ function Txta({label,value,onChange,placeholder="",rows=3}){
         onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)}
         style={{padding:"9px 13px",borderRadius:R.md,fontSize:F.base,fontFamily:F.family,
           color:C.textPrimary,outline:"none",resize:"vertical",transition:"all 0.15s",
-          background:foc?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
-          border:`1px solid ${foc?C.glassBorderFocus:C.glassBorder}`,backdropFilter:"blur(8px)"}}/>
+          background:C.bgMid,
+          border:`1px solid ${foc?C.glassBorderFocus:C.border}`}}/>
     </div>
   );
 }
@@ -645,7 +665,7 @@ function Sel({label,value,onChange,children}){
       <select value={value} onChange={e=>onChange(e.target.value)}
         style={{padding:"9px 13px",borderRadius:R.md,fontSize:F.base,fontFamily:F.family,
           color:C.textPrimary,outline:"none",cursor:"pointer",
-          background:"#111f0f",border:`1px solid ${C.glassBorder}`}}>
+          background:C.bgCard,border:`1px solid ${C.border}`}}>
         {children}
       </select>
     </div>
@@ -660,7 +680,7 @@ function Avt({name,idx=0,size=38}){
   return(
     <div style={{width:size,height:size,borderRadius:"50%",background:`${color}22`,color,
       display:"flex",alignItems:"center",justifyContent:"center",fontSize:Math.round(size*0.33),
-      fontWeight:F.bold,flexShrink:0,border:`1.5px solid ${color}44`,boxShadow:`0 0 12px ${color}33`}}>
+      fontWeight:F.bold,flexShrink:0,border:`1.5px solid ${color}44`,}}>
       {ini(name)}
     </div>
   );
@@ -670,7 +690,7 @@ function Card({children,style:ex={},onClick,glow}){
   return(
     <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{...gCard(),border:`1px solid ${hov&&onClick?C.glassBorderHover:C.glassBorder}`,
-        boxShadow:hov&&onClick?`0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(122,184,94,0.3)`:"0 4px 16px rgba(0,0,0,0.3)",
+        boxShadow:"none",borderColor:hov&&onClick?C.borderBrand:C.border,
         cursor:onClick?"pointer":undefined,transition:"all 0.2s",...ex}}>
       {children}
     </div>
@@ -683,16 +703,16 @@ function Modal({title,onClose,children,width=520}){
     return()=>window.removeEventListener("keydown",h);
   },[onClose]);
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(12,21,11,0.88)",zIndex:Z.modal,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6],backdropFilter:"blur(16px)"}}>
-      <div style={{...gCard({background:"#1a2e16"}),
+    <div style={{position:"fixed",inset:0,background:C.bg,zIndex:Z.modal,
+      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6]}}>
+      <div style={{...gCard({background:C.bgMid}),
         width,maxWidth:"100%",maxHeight:"90vh",overflowY:"auto",borderRadius:R.xxl,
-        boxShadow:"0 24px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15)"}}>
+        boxShadow:"none"}}>
         {title&&(
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-            padding:`${S[5]}px ${S[6]}px`,borderBottom:`1px solid ${C.glassBorder}`}}>
+            padding:`${S[5]}px ${S[6]}px`,borderBottom:"1px solid #1e3d1e"}}>
             <h2 style={{margin:0,fontSize:F.lg,fontWeight:F.bold,color:C.textPrimary}}>{title}</h2>
-            <button onClick={onClose} style={{...glass(0.12,8),border:`1px solid ${C.glassBorder}`,
+            <button onClick={onClose} style={{background:"#0f220f",border:"1px solid #1e3d1e",
               borderRadius:R.sm,width:28,height:28,cursor:"pointer",color:C.textSec,fontSize:18,
               display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
           </div>
@@ -703,11 +723,11 @@ function Modal({title,onClose,children,width=520}){
   );
 }
 function Prg({pct,color}){
-  const c=color||(pct===100?C.green:pct>50?C.brandLight:C.amber);
+  const c=color||(pct===100?C.green:pct>50?C.brand:C.amber);
   return(
-    <div style={{height:5,background:"rgba(255,255,255,0.08)",borderRadius:R.full,overflow:"hidden"}}>
-      <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${c}88,${c})`,
-        borderRadius:R.full,transition:"width 0.6s ease",boxShadow:`0 0 8px ${c}66`}}/>
+    <div style={{height:5,background:"#1e3d1e",borderRadius:R.full,overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${pct}%`,background:c,
+        borderRadius:R.full,transition:"width 0.6s ease",}}/>
     </div>
   );
 }
@@ -719,7 +739,7 @@ function SCard({label,value,sub,trend,color,icon}){
         {icon&&<span style={{fontSize:18,opacity:0.6}}>{icon}</span>}
       </div>
       <div style={{fontSize:F.xxl,fontWeight:F.black,color:color||C.textPrimary,letterSpacing:"-0.025em",
-        lineHeight:1.1,marginBottom:S[1],textShadow:color?`0 0 20px ${color}66`:"none"}}>{value}</div>
+        lineHeight:1.1,marginBottom:S[1],}}>{value}</div>
       {sub&&<div style={{fontSize:F.xs,color:C.textMuted}}>{sub}</div>}
       {trend!==undefined&&<div style={{fontSize:F.xs,fontWeight:F.semibold,color:trend>=0?C.green:C.red,marginTop:S[1]}}>
         {trend>=0?"▲":"▼"} {Math.abs(trend)}% vs last month</div>}
@@ -742,10 +762,10 @@ function FTab({label,active,onClick,badge}){
   return(
     <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{fontSize:F.sm,fontWeight:active?F.bold:F.regular,padding:"7px 15px",borderRadius:R.full,
-        border:`1px solid ${active?C.glassBorderHover:hov?"rgba(122,184,94,0.2)":C.glassBorder}`,
-        background:active?"rgba(122,184,94,0.15)":hov?"rgba(122,184,94,0.06)":"rgba(122,184,94,0.02)",
-        color:active?C.brandLight:C.textSec,cursor:"pointer",fontFamily:F.family,
-        display:"inline-flex",alignItems:"center",gap:S[1],transition:"all 0.15s",backdropFilter:"blur(8px)"}}>
+        border:`1px solid ${active?C.borderBrand:C.border}`,
+        background:active?C.bgHover:hov?C.bgMid:C.bgCard,
+        color:active?C.brandLight:C.creamDim,cursor:"pointer",fontFamily:F.family,
+        display:"inline-flex",alignItems:"center",gap:S[1],transition:"all 0.15s"}}>
       {label}
       {badge>0&&<span style={{background:C.red,color:C.white,fontSize:9,fontWeight:F.bold,
         borderRadius:R.full,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{badge}</span>}
@@ -761,9 +781,8 @@ function Srch({value,onChange,placeholder="Search…"}){
         onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)}
         style={{width:"100%",padding:"9px 13px 9px 34px",borderRadius:R.md,fontSize:F.base,
           fontFamily:F.family,color:C.textPrimary,outline:"none",boxSizing:"border-box",transition:"all 0.15s",
-          background:foc?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
-          border:`1px solid ${foc?C.glassBorderFocus:C.glassBorder}`,
-          backdropFilter:"blur(16px)",boxShadow:foc?`0 0 0 3px rgba(122,184,94,0.12)`:"none"}}/>
+          background:C.bgMid,
+          border:`1px solid ${foc?C.glassBorderFocus:C.border}`,boxShadow:"none"}}/>
     </div>
   );
 }
@@ -774,7 +793,7 @@ function PlanGate({cur,req,name,onUpgrade,children}){
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
       padding:`${S[12]}px ${S[6]}px`,textAlign:"center",gap:S[4]}}>
-      <div style={{fontSize:52,filter:"grayscale(1)",opacity:0.4}}>🔒</div>
+      <div style={{fontSize:52,opacity:0.4}}>🔒</div>
       <div style={{fontSize:F.xl,fontWeight:F.bold,color:C.textPrimary}}>{name}</div>
       <div style={{fontSize:F.base,color:C.textMuted,maxWidth:360,lineHeight:1.7}}>
         This feature is available on the{" "}
@@ -791,19 +810,18 @@ function PlanGate({cur,req,name,onUpgrade,children}){
 // ═══════════════════════════════════════════════════════════════
 function CPLogo({size=34,withText=false}){
   return(
-    <div style={{display:"flex",alignItems:"center",gap:Math.round(size*0.3),flexShrink:0}}>
-      <svg width={size} height={size} viewBox="0 0 80 80" fill="none"
-        style={{flexShrink:0,filter:"drop-shadow(0 2px 8px rgba(122,184,94,0.4))"}}>
-        <circle cx="40" cy="40" r="40" fill="#f5f0e4"/>
-        <rect x="18" y="26" width="44" height="5" rx="2.5" fill="#2d4a22"/>
-        <rect x="26" y="37.5" width="28" height="5" rx="2.5" fill="#4a7a36"/>
-        <rect x="18" y="49" width="44" height="5" rx="2.5" fill="#2d4a22"/>
-        <path d="M62 28 L18 51" stroke="#8cb87a" strokeWidth="2.5" strokeLinecap="round"/>
+    <div style={{display:"flex",alignItems:"center",gap:Math.round(size*0.32),flexShrink:0}}>
+      <svg width={size} height={size} viewBox="0 0 80 80" fill="none" style={{flexShrink:0}}>
+        <circle cx="40" cy="40" r="40" fill="#f2ead8"/>
+        <rect x="18" y="26" width="44" height="5" rx="2.5" fill="#1a3319"/>
+        <rect x="26" y="37.5" width="28" height="5" rx="2.5" fill="#3d7a28"/>
+        <rect x="18" y="49" width="44" height="5" rx="2.5" fill="#1a3319"/>
+        <path d="M62 28 L18 51" stroke="#6db84f" strokeWidth="2.5" strokeLinecap="round"/>
       </svg>
       {withText&&(
         <div style={{display:"flex",alignItems:"baseline",gap:1}}>
-          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.55),color:"#f0ebe0",fontWeight:700,letterSpacing:"-0.04em",lineHeight:1}}>zen</span>
-          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.55),color:"#8cb87a",fontWeight:300,letterSpacing:"-0.02em",lineHeight:1}}>voy</span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.56),color:"#f2ead8",fontWeight:700,letterSpacing:"-0.04em",lineHeight:1}}>zen</span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:Math.round(size*0.56),color:"#6db84f",fontWeight:300,letterSpacing:"-0.02em",lineHeight:1}}>voy</span>
         </div>
       )}
     </div>
@@ -886,30 +904,30 @@ function AuthScreen({onAuth,oauthErr=""}){
 
   const googleLogin=()=>{
     const SUPABASE_URL="https://fzohdtvijhdlnqtasadc.supabase.co";
-    window.location.href=`${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.origin)}`;
+    window.location.href=SUPABASE_URL+"/auth/v1/authorize?provider=google&redirect_to="+encodeURIComponent(window.location.origin);
   };
 
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:"#0c150b",
+      background:C.bg,
       fontFamily:F.family,position:"relative",overflow:"hidden",padding:S[6]}}>
       <div style={{position:"fixed",top:-200,left:-200,width:600,height:600,borderRadius:"50%",
-        background:"radial-gradient(circle,rgba(122,184,94,0.10) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        background:"transparent",pointerEvents:"none"}}/>
       <div style={{position:"fixed",bottom:-300,right:-100,width:700,height:700,borderRadius:"50%",
-        background:"radial-gradient(circle,rgba(74,122,54,0.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        background:"transparent",pointerEvents:"none"}}/>
 
       <div style={{width:"100%",maxWidth:420,position:"relative",zIndex:1}}>
         <div style={{textAlign:"center",marginBottom:S[8]}}>
           <div style={{margin:"0 auto",marginBottom:S[3],display:"flex",justifyContent:"center"}}>
-            <CPLogo size={48}/>
+            <CPLogo size={44}/>
           </div>
-          <div style={{fontSize:F.xxl,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.025em"}}>ClientPulse</div>
+          <div style={{fontSize:F.xxl,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.025em"}}>Zenvoy</div>
           <div style={{fontSize:F.base,color:C.textMuted,marginTop:S[1]}}>AI-powered CRM for freelancers</div>
         </div>
 
-        <div style={{...gCard({background:"#162812"}),
+        <div style={{...gCard({background:C.bgCard}),
           borderRadius:R.xxl,padding:S[6],
-          boxShadow:"0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12)"}}>
+          boxShadow:"none"}}>
 
           {/* Mode tabs */}
           <div style={{display:"flex",background:"rgba(255,255,255,0.06)",borderRadius:R.lg,padding:S[1],marginBottom:S[5]}}>
@@ -917,7 +935,7 @@ function AuthScreen({onAuth,oauthErr=""}){
               <button key={m} onClick={()=>{setMode(m);setErr("");setPass("");}}
                 style={{flex:1,padding:"8px 0",borderRadius:R.md,border:"none",cursor:"pointer",
                   fontFamily:F.family,fontSize:F.base,fontWeight:F.semibold,transition:"all 0.15s",
-                  background:mode===m?"rgba(122,184,94,0.18)":"transparent",
+                  background:mode===m?C.bgHover:"transparent",
                   color:mode===m?C.textPrimary:C.textMuted}}>
                 {m==="login"?"Sign in":"Create account"}
               </button>
@@ -936,9 +954,9 @@ function AuthScreen({onAuth,oauthErr=""}){
           </Btn>
 
           <div style={{display:"flex",alignItems:"center",gap:S[3],marginBottom:S[4]}}>
-            <div style={{flex:1,height:1,background:C.glassBorder}}/>
+            <div style={{flex:1,height:1,background:"#1e3d1e"}}/>
             <span style={{fontSize:F.xs,color:C.textMuted}}>or continue with email</span>
-            <div style={{flex:1,height:1,background:C.glassBorder}}/>
+            <div style={{flex:1,height:1,background:"#1e3d1e"}}/>
           </div>
 
           <div style={{display:"flex",flexDirection:"column",gap:S[3]}}>
@@ -970,7 +988,7 @@ function AuthScreen({onAuth,oauthErr=""}){
               )}
             </div>
             {mode==="login"&&(
-              <button onClick={()=>setErr("Password reset — contact support@zenvoy.io")}
+              <button onClick={()=>setErr("Contact support@zenvoy.io to reset your password")}
                 style={{background:"none",border:"none",cursor:"pointer",color:C.brand,fontSize:F.xs,
                   fontFamily:F.family,textAlign:"right",padding:0}}>
                 Forgot password?
@@ -979,8 +997,8 @@ function AuthScreen({onAuth,oauthErr=""}){
           </div>
 
           {(err||oauthErr)&&(
-            <div style={{marginTop:S[3],background:"rgba(248,113,113,0.12)",color:C.red,fontSize:F.sm,
-              borderRadius:R.md,padding:`${S[2]}px ${S[3]}px`,border:`1px solid rgba(248,113,113,0.25)`,lineHeight:1.5}}>
+            <div style={{marginTop:S[3],background:C.bgHover,color:C.red,fontSize:F.sm,
+              borderRadius:R.md,padding:`${S[2]}px ${S[3]}px`,border:`1px solid ${C.red}`,lineHeight:1.5}}>
               {err||oauthErr}
             </div>
           )}
@@ -1015,12 +1033,12 @@ function PricingModal({currentPlan,onClose,onSimulate}){
     window.open(plan.checkoutUrl,"_blank","noopener,noreferrer");
   };
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(12,21,11,0.92)",zIndex:Z.panel+10,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6],backdropFilter:"blur(16px)"}}>
-      <div style={{...gCard({background:"#1a2e16"}),
+    <div style={{position:"fixed",inset:0,background:C.bg,zIndex:Z.panel+10,
+      display:"flex",alignItems:"center",justifyContent:"center",padding:S[6]}}>
+      <div style={{...gCard({background:C.bgCard}),
         width:"min(960px,95vw)",borderRadius:R.xxl,overflow:"hidden",
-        boxShadow:"0 24px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.12)"}}>
-        <div style={{padding:`${S[6]}px ${S[8]}px ${S[5]}px`,textAlign:"center",borderBottom:`1px solid ${C.glassBorder}`,position:"relative"}}>
+        boxShadow:"none"}}>
+        <div style={{padding:`${S[6]}px ${S[8]}px ${S[5]}px`,textAlign:"center",borderBottom:"1px solid #1e3d1e",position:"relative"}}>
           <button onClick={onClose} style={{position:"absolute",right:S[5],top:S[4],...glass(0.12,8),
             border:`1px solid ${C.glassBorder}`,borderRadius:R.sm,width:30,height:30,cursor:"pointer",
             color:C.textSec,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
@@ -1034,10 +1052,10 @@ function PricingModal({currentPlan,onClose,onSimulate}){
             const isPop=plan.id==="pro";
             return(
               <div key={plan.id} style={{...gCard(),borderRadius:R.xl,overflow:"hidden",
-                border:`2px solid ${isCur?plan.color:isPop?"rgba(129,140,248,0.4)":C.glassBorder}`,
-                boxShadow:isPop?`0 0 40px ${C.brandGlow}`:"0 8px 24px rgba(0,0,0,0.2)",
+                border:`1px solid ${isCur?"#6db84f":isPop?"#3d7a28":C.border}`,
+                boxShadow:"none",
                 display:"flex",flexDirection:"column"}}>
-                {isPop&&<div style={{background:`linear-gradient(90deg,${C.brand},${C.purple})`,
+                {isPop&&<div style={{background:C.brand,
                   textAlign:"center",padding:"6px 0",fontSize:F.xs,fontWeight:F.bold,color:C.white,
                   letterSpacing:"0.05em",textTransform:"uppercase"}}>⭐ Most Popular</div>}
                 {isCur&&!isPop&&<div style={{background:"rgba(52,211,153,0.2)",textAlign:"center",
@@ -1067,7 +1085,7 @@ function PricingModal({currentPlan,onClose,onSimulate}){
                   {isCur
                     ?<div style={{textAlign:"center",padding:"10px 0",fontSize:F.base,fontWeight:F.semibold,color:C.green}}>✓ Active plan</div>
                     :plan.id==="free"
-                      ?<Btn onClick={()=>toast.info("To cancel, email support@zenvoy.io")} variant="secondary" fullWidth>Downgrade to Free</Btn>
+                      ?<Btn onClick={()=>onSimulate("free")} variant="secondary" fullWidth>Downgrade to Free</Btn>
                       :<Btn onClick={()=>open(plan)} variant={plan.id==="pro"?"primary":"brand_ghost"} fullWidth>
                         Get {plan.name} — {plan.label}
                       </Btn>
@@ -1078,7 +1096,7 @@ function PricingModal({currentPlan,onClose,onSimulate}){
           })}
         </div>
         <div style={{textAlign:"center",padding:`0 0 ${S[5]}px`,fontSize:F.xs,color:C.textMuted}}>
-          🔒 Secure payment via Lemon Squeezy (Stripe) · 7-day money-back guarantee · Cancel anytime from settings
+          🔒 Secure payment via Razorpay · 7-day money-back guarantee · Cancel anytime
         </div>
       </div>
     </div>
@@ -1091,14 +1109,14 @@ function PricingModal({currentPlan,onClose,onSimulate}){
 function Sidebar({page,onNav,badges,plan,onUpgrade,onLogout,userName,userId}){
   const cfg=PLANS[plan]||PLANS.free;
   return(
-    <aside className="zv-sidebar" style={{width:220,background:"#111f0f",backdropFilter:"blur(20px)",
+    <aside className="zv-sidebar" style={{width:220,background:C.sidebar,
       display:"flex",flexDirection:"column",flexShrink:0,position:"sticky",top:0,height:"100vh",
-      overflowY:"auto",borderRight:"1px solid rgba(122,184,94,0.15)"}}>
-      <div style={{padding:`${S[5]}px ${S[5]}px ${S[4]}px`,borderBottom:`1px solid ${C.glassBorder}`}}>
+      overflowY:"auto",borderRight:`1px solid ${C.border}`}}>
+      <div style={{padding:`${S[5]}px ${S[5]}px ${S[4]}px`,borderBottom:"1px solid #1e3d1e"}}>
         <div style={{display:"flex",alignItems:"center",gap:S[3]}}>
           <CPLogo size={34} withText={true}/>
           <div>
-            <div style={{fontSize:F.md,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.02em",lineHeight:1.1}}>ClientPulse</div>
+            <div style={{fontSize:F.md,fontWeight:F.black,color:C.textPrimary,letterSpacing:"-0.02em",lineHeight:1.1}}>Zenvoy</div>
             <div style={{fontSize:F.xs,color:C.textMuted}}>AI-powered CRM</div>
           </div>
         </div>
@@ -1114,10 +1132,10 @@ function Sidebar({page,onNav,badges,plan,onUpgrade,onLogout,userName,userId}){
             <button key={item.id} onClick={()=>onNav(item.id)}
               style={{display:"flex",alignItems:"center",gap:S[3],padding:`${S[2]+1}px ${S[3]}px`,
                 borderRadius:R.md,border:"none",cursor:"pointer",fontFamily:F.family,width:"100%",textAlign:"left",
-                background:isActive?"rgba(122,184,94,0.14)":"transparent",
-                color:isActive?C.textPrimary:locked?"rgba(255,255,255,0.3)":C.textSec,
+                background:isActive?C.bgHover:"transparent",
+                color:isActive?C.cream:locked?C.creamMuted:C.creamDim,
                 fontWeight:isActive?F.semibold:F.regular,fontSize:F.base,transition:"all 0.15s"}}
-              onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background="rgba(255,255,255,0.06)";}}
+              onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background="#1a3319";}}
               onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background="transparent";}}>
               <span style={{fontSize:13,width:16,textAlign:"center",flexShrink:0}}>{item.icon}</span>
               <span style={{flex:1}}>{item.label}</span>
@@ -1131,16 +1149,16 @@ function Sidebar({page,onNav,badges,plan,onUpgrade,onLogout,userName,userId}){
       <div style={{padding:`${S[3]}px ${S[3]}px ${S[4]}px`}}>
         {plan==="free"&&(
           <button onClick={onUpgrade}
-            style={{width:"100%",background:`linear-gradient(135deg,rgba(122,184,94,0.1),rgba(74,122,54,0.07))`,
-              border:`1px solid rgba(122,184,94,0.25)`,borderRadius:R.lg,padding:`${S[3]}px ${S[4]}px`,
+            style={{width:"100%",background:C.bgHover,
+              border:`1px solid ${C.borderBrand}`,borderRadius:R.lg,padding:`${S[3]}px ${S[4]}px`,
               cursor:"pointer",fontFamily:F.family,marginBottom:S[3],textAlign:"left"}}>
-            <div style={{fontSize:F.xs,fontWeight:F.bold,color:C.brand,marginBottom:S[1]}}>✨ Upgrade to Pro</div>
+            <div style={{fontSize:F.xs,fontWeight:F.bold,color:"#6db84f",marginBottom:S[1]}}>✨ Upgrade to Pro</div>
             <div style={{fontSize:F.xs,color:C.textMuted}}>Unlock all features for $39/mo</div>
           </button>
         )}
         <div style={{display:"flex",alignItems:"center",gap:S[2],padding:`${S[2]}px ${S[1]}px`}}>
           <div style={{width:30,height:30,borderRadius:"50%",flexShrink:0,
-            background:`linear-gradient(135deg,${C.brandLight},${C.brandMid})`,
+            background:C.brand,
             display:"flex",alignItems:"center",justifyContent:"center",
             fontSize:F.xs,color:C.white,fontWeight:F.bold}}>
             {ini(userName||"U")}
@@ -1172,7 +1190,7 @@ function Topbar({page,alerts=0,plan,onUpgrade}){
     expenses:"Track project costs and profit margins",templates:"Ready-to-use email templates",
     reports:"Revenue, expenses, and profit insights",settings:"Account and plan settings"};
   return(
-    <header style={{...glass(0.06,20),borderBottom:`1px solid ${C.glassBorder}`,
+    <header style={{...glass(0.06,20),borderBottom:"1px solid #1e3d1e",
       padding:`0 ${S[6]}px`,height:60,display:"flex",alignItems:"center",
       justifyContent:"space-between",flexShrink:0}}>
       <div>
@@ -1184,7 +1202,7 @@ function Topbar({page,alerts=0,plan,onUpgrade}){
       <div style={{display:"flex",alignItems:"center",gap:S[3]}}>
         {plan==="free"&&(
           <button onClick={onUpgrade}
-            style={{background:`linear-gradient(135deg,${C.brandLight},${C.brandMid})`,color:C.white,
+            style={{background:C.brand,color:C.white,
               border:"none",borderRadius:R.full,padding:"7px 16px",fontSize:F.xs,fontWeight:F.bold,
               cursor:"pointer",fontFamily:F.family,boxShadow:`0 4px 16px ${C.brandGlow}`}}>
             ✨ Upgrade to Pro
@@ -1208,17 +1226,17 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
   const{msgs,loading,error,send,reset}=useAIChat(client);
   const[input,setInput]=useState("");
   const bottomRef=useRef(null);
-  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
+  useEffect(()=>{bottomRef.current&&bottomRef.current.scrollIntoView({behavior:"smooth"});},[msgs]);
   const go=text=>{if(!canUseAI){onUpgrade();return;}send(text);onUsed();setInput("");};
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(12,21,11,0.85)",zIndex:Z.panel,
-      display:"flex",alignItems:"flex-end",justifyContent:"flex-end",padding:S[6],backdropFilter:"blur(10px)"}}>
-      <div style={{...gCard({background:"#162812"}),
+    <div style={{position:"fixed",inset:0,background:C.bg,zIndex:Z.panel,
+      display:"flex",alignItems:"flex-end",justifyContent:"flex-end",padding:S[6]}}>
+      <div style={{...gCard({background:C.bgCard}),
         width:460,height:640,display:"flex",flexDirection:"column",borderRadius:R.xxl,
-        boxShadow:"0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.15)",overflow:"hidden"}}>
-        <div style={{background:"linear-gradient(135deg,#1e3319,#162812)",
+        boxShadow:"0 24px 80px rgba(0,0,0,0.5)",overflow:"hidden"}}>
+        <div style={{background:C.sidebar,
           padding:`${S[4]}px ${S[5]}px`,display:"flex",alignItems:"center",gap:S[3],
-          borderBottom:`1px solid ${C.glassBorder}`,flexShrink:0}}>
+          borderBottom:"1px solid #1e3d1e",flexShrink:0}}>
           <Avt name={client.name} idx={client.avatarIdx||0} size={36}/>
           <div style={{flex:1}}>
             <div style={{fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>AI for {client.name.split(" ")[0]}</div>
@@ -1227,17 +1245,17 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
             </div>
           </div>
           {msgs.length>0&&<button onClick={reset}
-            style={{...glass(0.15,8),border:`1px solid ${C.glassBorder}`,borderRadius:R.sm,
+            style={{background:"#0f220f",border:"1px solid #1e3d1e",borderRadius:R.sm,
               padding:"4px 10px",cursor:"pointer",color:C.textSec,fontSize:F.xs,fontFamily:F.family}}>
             New chat
           </button>}
           <button onClick={onClose}
-            style={{...glass(0.15,8),border:`1px solid ${C.glassBorder}`,borderRadius:R.sm,
+            style={{background:"#0f220f",border:"1px solid #1e3d1e",borderRadius:R.sm,
               width:28,height:28,cursor:"pointer",color:C.textSec,fontSize:18,
               display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
         </div>
         {!canUseAI&&(
-          <div style={{padding:S[5],textAlign:"center",borderBottom:`1px solid ${C.glassBorder}`,flexShrink:0}}>
+          <div style={{padding:S[5],textAlign:"center",borderBottom:"1px solid #1e3d1e",flexShrink:0}}>
             <div style={{fontSize:F.base,fontWeight:F.bold,color:C.amber,marginBottom:S[3]}}>
               🚫 Monthly AI draft limit reached
             </div>
@@ -1248,18 +1266,18 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
           </div>
         )}
         {msgs.length===0&&canUseAI&&(
-          <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,flexShrink:0}}>
+          <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",flexShrink:0}}>
             <div style={{fontSize:F.xs,fontWeight:F.bold,color:C.textMuted,textTransform:"uppercase",
               letterSpacing:"0.07em",marginBottom:S[3]}}>Quick actions</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:S[2]}}>
               {AI_ACTIONS.map(a=>(
                 <button key={a.id} onClick={()=>go(buildQ(a.id,client))}
-                  style={{...glass(0.06,8),border:`1px solid ${C.glassBorder}`,borderRadius:R.md,
+                  style={{background:"#0f220f",border:"1px solid #1e3d1e",borderRadius:R.md,
                     padding:`${S[2]}px ${S[3]}px`,fontSize:F.xs,cursor:"pointer",textAlign:"left",
                     color:C.textSec,fontFamily:F.family,fontWeight:F.medium,
                     display:"flex",gap:S[2],alignItems:"center",transition:"all 0.15s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.background="rgba(129,140,248,0.15)";e.currentTarget.style.color=C.textPrimary;}}
-                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.06)";e.currentTarget.style.color=C.textSec;}}>
+                  onMouseEnter={e=>{e.currentTarget.style.background="#1a3319";e.currentTarget.style.color="#f2ead8";}}
+                  onMouseLeave={e=>{e.currentTarget.style.background="#1a3319";e.currentTarget.style.color="#c8bfa8";}}>
                   <span>{a.emoji}</span>{a.label}
                 </button>
               ))}
@@ -1280,8 +1298,8 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
                 {m.content}
               </div>
               {m.role==="assistant"&&(
-                <button onClick={()=>navigator.clipboard?.writeText(m.content)}
-                  style={{marginTop:S[1],fontSize:F.xs,color:C.textMuted,background:"none",border:"none",
+                <button onClick={()=>navigator.clipboard&&navigator.clipboard.writeText(m.content)}
+                  style={{marginTop:S[1],fontSize:F.xs,color:"#7a7060",background:"none",border:"none",
                     cursor:"pointer",padding:0,fontFamily:F.family}}>📋 Copy</button>
               )}
             </div>
@@ -1298,8 +1316,7 @@ function AIPanel({client,onClose,canUseAI,aiLeft,onUpgrade,onUsed}){
             disabled={!canUseAI}
             style={{flex:1,fontSize:F.base,padding:"9px 13px",borderRadius:R.md,fontFamily:F.family,
               color:C.textPrimary,outline:"none",transition:"all 0.15s",
-              background:"rgba(255,255,255,0.06)",border:`1px solid ${C.glassBorder}`,
-              backdropFilter:"blur(8px)",opacity:canUseAI?1:0.5}}/>
+              background:"rgba(255,255,255,0.06)",border:`1px solid ${C.glassBorder}`,opacity:canUseAI?1:0.5}}/>
           <Btn onClick={()=>input.trim()&&go(input.trim())} variant="primary"
             disabled={loading||!input.trim()||!canUseAI} style={{borderRadius:R.md}}>↗</Btn>
         </div>
@@ -1327,7 +1344,7 @@ function ClientForm({initial,onSave,onClose}){
       notes:SEC.sanitize(f.notes),
       value:Number(f.value)||0,paid:Number(f.paid)||0,
       invoicePending:(Number(f.paid)||0)<(Number(f.value)||0),
-      avatarIdx:initial?.avatarIdx??Math.floor(Math.random()*AVATAR_COLORS.length)});
+      avatarIdx:(initial?initial.avatarIdx:undefined)||Math.floor(Math.random()*AVATAR_COLORS.length)});
     onClose();
   };
   return(
@@ -1385,7 +1402,7 @@ function ClientCard({client,onSelect,onAI}){
             <Avt name={client.name} idx={client.avatarIdx||0} size={40}/>
             <div style={{position:"absolute",bottom:-2,right:-2,width:12,height:12,borderRadius:"50%",
               background:healthColor(hs),border:`2px solid rgba(15,10,40,0.8)`,
-              boxShadow:`0 0 6px ${healthColor(hs)}`}} title={`Health: ${hs}%`}/>
+              }} title={`Health: ${hs}%`}/>
           </div>
           <div>
             <div style={{fontWeight:F.bold,fontSize:F.md,color:C.textPrimary,lineHeight:1.2}}>{client.name}</div>
@@ -1411,13 +1428,13 @@ function ClientCard({client,onSelect,onAI}){
           🕐 {days===0?"Today":`${days}d ago`}
         </span>
         <div style={{display:"flex",gap:S[1],alignItems:"center"}}>
-          {client.tags?.slice(0,2).map(t=>(
+          {client.tags&&client.tags.slice(0,2).map(t=>(
             <span key={t} style={{fontSize:F.xs,fontWeight:F.semibold,padding:"2px 8px",borderRadius:R.full,
-              background:"rgba(129,140,248,0.12)",color:C.brand,border:`1px solid rgba(129,140,248,0.25)`}}>{t}</span>
+              background:"#132613",color:"#6db84f",border:"1px solid #2d5c2d"}}>{t}</span>
           ))}
           <button onClick={e=>{e.stopPropagation();onAI(client);}}
             style={{fontSize:F.xs,fontWeight:F.bold,padding:"3px 10px",borderRadius:R.full,
-              background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
+              background:"rgba(61,122,40,0.25)",color:C.brand,border:`1px solid ${C.borderBrand}`,
               cursor:"pointer",fontFamily:F.family,transition:"all 0.15s"}}>✨ AI</button>
         </div>
       </div>
@@ -1447,9 +1464,9 @@ function ClientDetail({client,onClose,onEdit,onDelete,onAI,onMarkContacted}){
           </div>
         </div>
       </div>
-      <div style={{height:1,background:C.glassBorder,marginBottom:S[5]}}/>
+      <div style={{height:1,background:"#1e3d1e",marginBottom:S[5]}}/>
       {/* Health score */}
-      <div style={{...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`,marginBottom:S[4],
+      <div style={{background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`,marginBottom:S[4],
         display:"flex",alignItems:"center",gap:S[4]}}>
         <div>
           <div style={{fontSize:F.xs,color:C.textMuted,marginBottom:2}}>Client health</div>
@@ -1479,27 +1496,27 @@ function ClientDetail({client,onClose,onEdit,onDelete,onAI,onMarkContacted}){
       </div>
       <div style={{display:"flex",gap:S[3],marginBottom:S[4]}}>
         {[["Project",client.project],["Stage",client.stage||"—"],["Currency",client.currency||"USD"]].map(([l,v])=>(
-          <div key={l} style={{flex:1,...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`}}>
+          <div key={l} style={{flex:1,background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`}}>
             <div style={{fontSize:F.xs,color:C.textMuted,marginBottom:2}}>{l}</div>
             <div style={{fontSize:F.base,fontWeight:F.semibold,color:C.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v}</div>
           </div>
         ))}
       </div>
       {client.notes&&(
-        <div style={{...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`,
+        <div style={{background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`,
           marginBottom:S[4],fontSize:F.base,color:C.textSec,lineHeight:1.7,borderLeft:`3px solid ${C.brand}`}}>
           {client.notes}
         </div>
       )}
-      {client.tags?.length>0&&(
+      {client.tags&&client.tags.length>0&&(
         <div style={{display:"flex",gap:S[1],flexWrap:"wrap",marginBottom:S[5]}}>
           {client.tags.map(t=>(
             <span key={t} style={{fontSize:F.xs,fontWeight:F.semibold,padding:"2px 9px",borderRadius:R.full,
-              background:"rgba(129,140,248,0.12)",color:C.brand,border:`1px solid rgba(129,140,248,0.25)`}}>{t}</span>
+              background:"#132613",color:"#6db84f",border:"1px solid #2d5c2d"}}>{t}</span>
           ))}
         </div>
       )}
-      <div style={{height:1,background:C.glassBorder,marginBottom:S[4]}}/>
+      <div style={{height:1,background:"#1e3d1e",marginBottom:S[4]}}/>
       <div style={{display:"flex",gap:S[2],flexWrap:"wrap"}}>
         <Btn onClick={()=>{onMarkContacted(client.id);onClose();}} variant="success">✅ Mark contacted</Btn>
         <Btn onClick={()=>{onAI(client);onClose();}} variant="brand_ghost">✨ AI Draft</Btn>
@@ -1540,9 +1557,8 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
   if(clients.length===0){
     return(
       <div style={{display:"flex",flexDirection:"column",gap:S[6]}}>
-        <div style={{background:`linear-gradient(135deg,rgba(42,74,34,0.85),rgba(26,46,22,0.95))`,
-          backdropFilter:"blur(20px)",borderRadius:R.xxl,padding:`${S[8]}px`,textAlign:"center",
-          border:`1px solid rgba(122,184,94,0.22)`,color:C.textPrimary,boxShadow:`0 8px 40px rgba(12,21,11,0.5)`}}>
+        <div style={{background:C.brandDeep,borderRadius:R.xxl,padding:`${S[8]}px`,textAlign:"center",
+          border:`1px solid ${C.borderBrand}`,color:C.textPrimary,boxShadow:"none"}}>
           <div style={{fontSize:56,marginBottom:S[3]}}>⚡</div>
           <div style={{fontSize:F.xxl,fontWeight:F.black,letterSpacing:"-0.025em",marginBottom:S[3]}}>Welcome to ClientPulse!</div>
           <div style={{fontSize:F.base,color:"rgba(255,255,255,0.7)",marginBottom:S[6],maxWidth:480,margin:"0 auto 24px",lineHeight:1.7}}>
@@ -1550,7 +1566,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
           </div>
           <Btn onClick={()=>goPage("clients")} variant="primary" size="lg">+ Add your first client →</Btn>
         </div>
-        {!onboarding?.dismissed&&<OnboardingChecklist steps={onboarding?.steps||{}} onDismiss={onDismiss} onNavigate={goPage}/>}
+        {!(onboarding&&onboarding.dismissed)&&<OnboardingChecklist steps={(onboarding&&onboarding.steps)||{}} onDismiss={onDismiss} onNavigate={goPage}/>}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:S[4]}}>
           {[
             ["◈","Smart Dashboard","Revenue stats, client health scores, alerts — all in one place"],
@@ -1574,11 +1590,10 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
   const criticalClients=clientsWithHealth.filter(c=>c.health<40).slice(0,3);
   return(
     <div style={{display:"flex",flexDirection:"column",gap:S[6]}}>
-      <div style={{background:`linear-gradient(135deg,rgba(42,74,34,0.85),rgba(26,46,22,0.95))`,
-        backdropFilter:"blur(20px)",borderRadius:R.xxl,padding:`${S[6]}px ${S[8]}px`,
-        border:`1px solid rgba(122,184,94,0.22)`,color:C.textPrimary,
+      <div style={{background:C.brandDeep,borderRadius:R.xxl,padding:`${S[6]}px ${S[8]}px`,
+        border:`1px solid ${C.borderBrand}`,color:C.textPrimary,
         display:"flex",justifyContent:"space-between",alignItems:"center",
-        boxShadow:`0 8px 40px rgba(12,21,11,0.6)`}}>
+        boxShadow:"none"}}>
         <div>
           <div style={{fontSize:F.sm,color:"rgba(255,255,255,0.6)",marginBottom:S[1]}}>
             {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
@@ -1594,7 +1609,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
           <div style={{fontSize:F.sm,color:"rgba(255,255,255,0.5)",marginTop:S[1]}}>pipeline · {pct}% collected</div>
         </div>
       </div>
-      {!onboarding?.dismissed&&<OnboardingChecklist steps={onboarding?.steps||{}} onDismiss={onDismiss} onNavigate={goPage}/>}
+      {!(onboarding&&onboarding.dismissed)&&<OnboardingChecklist steps={(onboarding&&onboarding.steps)||{}} onDismiss={onDismiss} onNavigate={goPage}/>}
       <RevenueGoal goal={revenueGoal||0} collected={derived.totalCollected} onSetGoal={onSetGoal}/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:S[4]}}>
         <SCard label="Revenue collected" value={fmt$(totalCollected)} sub={`${pct}% of pipeline`} color={C.green} icon="💰"/>
@@ -1611,7 +1626,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
           {/* Client health overview */}
           {clientsWithHealth.length>0&&(
             <Card>
-              <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
+              <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
                 Client health overview
               </div>
               {clientsWithHealth.sort((a,b)=>a.health-b.health).slice(0,5).map((c,i)=>(
@@ -1633,7 +1648,7 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
         <div style={{display:"flex",flexDirection:"column",gap:S[4]}}>
           {(needsFollowUp.length>0||overdueInvs.length>0)&&(
             <Card>
-              <div style={{padding:`${S[3]}px ${S[4]}px`,borderBottom:`1px solid ${C.glassBorder}`,display:"flex",alignItems:"center",gap:S[2]}}>
+              <div style={{padding:`${S[3]}px ${S[4]}px`,borderBottom:"1px solid #1e3d1e",display:"flex",alignItems:"center",gap:S[2]}}>
                 <span style={{width:8,height:8,borderRadius:"50%",background:C.red,boxShadow:`0 0 8px ${C.redGlow}`}}/>
                 <span style={{fontWeight:F.bold,fontSize:F.base,color:C.textPrimary}}>Needs attention</span>
               </div>
@@ -1641,19 +1656,19 @@ function DashboardPage({clients,invoices,tasks,activity,derived,onAI,onUpgrade,g
                 ...overdueInvs.slice(0,2).map(inv=>({text:`${inv.client}: ${fmt$(inv.amount)} overdue`,color:C.red,client:clients.find(c=>c.id===inv.clientId)})),
                 ...needsFollowUp.slice(0,3).map(c=>({text:`${c.name}: ${daysAgo(c.lastContact||today())}d no contact`,color:C.amber,client:c})),
               ].slice(0,5).map((a,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:S[2],padding:`${S[3]}px ${S[4]}px`,borderBottom:`1px solid ${C.glassBorder}`}}>
+                <div key={i} style={{display:"flex",alignItems:"center",gap:S[2],padding:`${S[3]}px ${S[4]}px`,borderBottom:"1px solid #1e3d1e"}}>
                   <span style={{width:7,height:7,borderRadius:"50%",background:a.color,flexShrink:0}}/>
                   <span style={{fontSize:F.xs,color:C.textSec,flex:1,lineHeight:1.5}}>{a.text}</span>
                   {a.client&&<button onClick={()=>onAI(a.client)}
                     style={{fontSize:F.xs,fontWeight:F.bold,padding:"3px 9px",borderRadius:R.full,
-                      background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
+                      background:"rgba(61,122,40,0.25)",color:C.brand,border:`1px solid ${C.borderBrand}`,
                       cursor:"pointer",fontFamily:F.family,whiteSpace:"nowrap"}}>AI ✨</button>}
                 </div>
               ))}
             </Card>
           )}
           <Card style={{flex:1}}>
-            <div style={{padding:`${S[3]}px ${S[4]}px`,borderBottom:`1px solid ${C.glassBorder}`,fontWeight:F.bold,fontSize:F.base,color:C.textPrimary}}>Recent activity</div>
+            <div style={{padding:`${S[3]}px ${S[4]}px`,borderBottom:"1px solid #1e3d1e",fontWeight:F.bold,fontSize:F.base,color:C.textPrimary}}>Recent activity</div>
             {activity.length===0?(
               <div style={{padding:`${S[6]}px`,textAlign:"center",fontSize:F.xs,color:C.textMuted}}>No activity yet.</div>
             ):activity.slice(0,8).map((item,i)=>(
@@ -1769,7 +1784,7 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
       </div>
       <Card>
         <div style={{display:"grid",gridTemplateColumns:"90px 1fr 1.4fr 90px 100px 150px",gap:S[3],
-          padding:`${S[3]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,background:"rgba(255,255,255,0.03)"}}>
+          padding:`${S[3]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",background:"rgba(255,255,255,0.03)"}}>
           {["Invoice","Client","Description","Amount","Due","Status"].map(h=>(
             <div key={h} style={{fontSize:F.xs,fontWeight:F.bold,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.05em"}}>{h}</div>
           ))}
@@ -1780,9 +1795,9 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
             const cfg=INVOICE_STATUS[inv.status]||INVOICE_STATUS.draft;
             return(
               <div key={inv.id} style={{display:"grid",gridTemplateColumns:"90px 1fr 1.4fr 90px 100px 150px",
-                gap:S[3],padding:`${S[4]}px ${S[5]}px`,borderBottom:i<filtered.length-1?`1px solid ${C.glassBorder}`:"none",
+                gap:S[3],padding:`${S[4]}px ${S[5]}px`,borderBottom:i<filtered.length-1?"1px solid #1e3d1e":"none",
                 alignItems:"center",transition:"background 0.15s"}}
-                onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
+                onMouseEnter={e=>e.currentTarget.style.background="#0f220f"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:F.sm,fontWeight:F.bold,color:C.brand,fontFamily:F.mono}}>{inv.id}</div>
                 <div style={{fontSize:F.base,fontWeight:F.medium,color:C.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{inv.client}</div>
@@ -1791,14 +1806,14 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
                 <div style={{fontSize:F.xs,color:inv.status==="overdue"?C.red:C.textSec,fontWeight:inv.status==="overdue"?F.bold:F.regular}}>{inv.due||"—"}</div>
                 <div style={{display:"flex",gap:S[2],alignItems:"center"}}>
                   <Bdg label={cfg.label} color={cfg.color} bg={cfg.bg}/>
-                  <button onClick={()=>downloadInvoicePDF(inv,clients)} style={{background:"rgba(122,184,94,0.08)",border:"1px solid rgba(122,184,94,0.2)",borderRadius:R.sm,padding:"3px 7px",cursor:"pointer",fontSize:F.xs,color:C.brandLight,fontFamily:F.family}} title="PDF">↓</button>
+                  <button onClick={()=>downloadInvoicePDF(inv,clients)} style={{background:"transparent",border:"1px solid #2d5c2d",borderRadius:4,padding:"3px 8px",cursor:"pointer",fontSize:F.xs,color:"#6db84f",fontFamily:F.family}}>PDF</button>
                   {inv.status!=="paid"&&(
                     <button onClick={()=>{act.markPaid(inv.id);toast.success("Invoice marked as paid!");}}
-                      style={{background:"rgba(52,211,153,0.15)",border:"1px solid rgba(52,211,153,0.3)",
+                      style={{background:"transparent",border:"1px solid #2d5c2d",
                         borderRadius:R.sm,padding:"3px 8px",cursor:"pointer",fontSize:F.xs,
                         color:C.green,fontWeight:F.bold,fontFamily:F.family,transition:"all 0.15s"}}
-                      onMouseEnter={e=>e.currentTarget.style.background="rgba(52,211,153,0.25)"}
-                      onMouseLeave={e=>e.currentTarget.style.background="rgba(52,211,153,0.15)"}>
+                      onMouseEnter={e=>e.currentTarget.style.background="#1a3319"}
+                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                       ✓ Paid
                     </button>
                   )}
@@ -1822,9 +1837,9 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
               <option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option>
             </Sel>
             {hasPlan(derived.cfg.id,"pro")&&(
-              <div style={{...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`}}>
+              <div style={{background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`}}>
                 <label style={{display:"flex",alignItems:"center",gap:S[2],cursor:"pointer",fontSize:F.sm,color:C.textSec}}>
-                  <input type="checkbox" checked={f.recurring} onChange={e=>setF(p=>({...p,recurring:e.target.checked}))} style={{accentColor:C.brand}}/>
+                  <input type="checkbox" checked={f.recurring} onChange={e=>setF(p=>({...p,recurring:e.target.checked}))} style={{accentColor:"#6db84f"}}/>
                   Recurring invoice
                 </label>
                 {f.recurring&&(
@@ -1840,7 +1855,7 @@ function InvoicesPage({invoices,clients,act,derived,onUpgrade}){
             )}
             <div style={{display:"flex",gap:S[3]}}>
               <Btn onClick={()=>setShowAdd(false)} variant="secondary" fullWidth>Cancel</Btn>
-              <Btn onClick={()=>{if(!f.amount||!f.clientId)return;act.addInvoice({clientId:f.clientId,client:client?.name,amount:Number(f.amount),desc:f.desc,due:f.due,status:f.status,recurring:f.recurring,interval:f.interval});setShowAdd(false);}}
+              <Btn onClick={()=>{if(!f.amount||!f.clientId)return;act.addInvoice({clientId:f.clientId,client:(client?client.name:""),amount:Number(f.amount),desc:f.desc,due:f.due,status:f.status,recurring:f.recurring,interval:f.interval});setShowAdd(false);}}
                 variant="primary" fullWidth disabled={!f.amount||!f.clientId}>Create invoice</Btn>
             </div>
           </div>
@@ -1859,7 +1874,7 @@ function TasksPage({tasks,clients,act}){
   const client=clients.find(c=>c.id==f.clientId);
   const filtered=tasks
     .filter(t=>filter==="all"?true:filter==="open"?!t.done:t.done)
-    .sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;const o={high:0,medium:1,low:2};return(o[a.priority]??1)-(o[b.priority]??1);});
+    .sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;const o={high:0,medium:1,low:2};return(o[a.priority]!=null?o[a.priority]:1)-(o[b.priority]!=null?o[b.priority]:1);});
   return(
     <div style={{display:"flex",flexDirection:"column",gap:S[5]}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:S[4]}}>
@@ -1884,10 +1899,10 @@ function TasksPage({tasks,clients,act}){
             const ov=t.due&&!t.done&&new Date(t.due)<new Date();
             return(
               <div key={t.id} style={{display:"flex",alignItems:"center",gap:S[3],padding:`${S[4]}px ${S[5]}px`,
-                borderBottom:i<filtered.length-1?`1px solid ${C.glassBorder}`:"none",opacity:t.done?0.45:1,transition:"opacity 0.2s"}}>
+                borderBottom:i<filtered.length-1?"1px solid #1e3d1e":"none",opacity:t.done?0.45:1,transition:"opacity 0.2s"}}>
                 <input type="checkbox" checked={t.done} onChange={()=>act.toggleTask(t.id)}
-                  style={{width:16,height:16,cursor:"pointer",accentColor:C.brand,flexShrink:0}}/>
-                <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0,boxShadow:`0 0 6px ${p.color}88`}}/>
+                  style={{width:16,height:16,cursor:"pointer",accentColor:"#6db84f",flexShrink:0}}/>
+                <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0,}}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:F.base,color:C.textPrimary,fontWeight:F.medium,textDecoration:t.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.text}</div>
                   <div style={{fontSize:F.xs,color:C.textMuted,marginTop:2}}>
@@ -1897,9 +1912,9 @@ function TasksPage({tasks,clients,act}){
                 <span style={{fontSize:F.xs,fontWeight:F.semibold,color:p.color,background:`${p.color}15`,
                   padding:"2px 8px",borderRadius:R.full,border:`1px solid ${p.color}30`,whiteSpace:"nowrap"}}>{p.label}</span>
                 <button onClick={()=>act.deleteTask(t.id)}
-                  style={{background:"none",border:"none",cursor:"pointer",fontSize:14,color:"rgba(255,255,255,0.2)",padding:S[1],lineHeight:1,transition:"color 0.15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                  onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.2)"}>🗑</button>
+                  style={{background:"none",border:"none",cursor:"pointer",fontSize:14,color:"#2d5c2d",padding:S[1],lineHeight:1,transition:"color 0.15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#b84f4f"}
+                  onMouseLeave={e=>e.currentTarget.style.color="#2d5c2d"}>🗑</button>
               </div>
             );
           })}
@@ -1919,7 +1934,7 @@ function TasksPage({tasks,clients,act}){
             </div>
             <div style={{display:"flex",gap:S[3]}}>
               <Btn onClick={()=>setShowAdd(false)} variant="secondary" fullWidth>Cancel</Btn>
-              <Btn onClick={()=>{if(!f.text.trim())return;act.addTask({clientId:f.clientId,client:client?.name,text:f.text,due:f.due,priority:f.priority});setShowAdd(false);}}
+              <Btn onClick={()=>{if(!f.text.trim())return;act.addTask({clientId:f.clientId,client:(client?client.name:""),text:f.text,due:f.due,priority:f.priority});setShowAdd(false);}}
                 variant="primary" fullWidth disabled={!f.text.trim()}>Add task</Btn>
             </div>
           </div>
@@ -1963,7 +1978,7 @@ function PipelinePage({clients,onAI,plan,onUpgrade}){
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:S[3]}}>
                 {sc.length===0?(
-                  <div style={{...glass(0.04,8),borderRadius:R.lg,border:`1px dashed ${C.glassBorder}`,
+                  <div style={{...glass(0.04,8),borderRadius:R.lg,border:"1px dashed #1e3d1e",
                     padding:`${S[6]}px ${S[4]}px`,textAlign:"center",fontSize:F.xs,color:C.textMuted}}>No clients</div>
                 ):sc.map(c=>{
                   const p=pctPaid(c.paid,c.value);
@@ -1988,7 +2003,7 @@ function PipelinePage({clients,onAI,plan,onUpgrade}){
                         <span style={{fontSize:10,color:C.textMuted}}>{c.stage||"—"}</span>
                         <button onClick={()=>onAI(c)}
                           style={{fontSize:10,fontWeight:F.bold,padding:"2px 8px",borderRadius:R.full,
-                            background:"rgba(129,140,248,0.15)",color:C.brand,border:`1px solid rgba(122,184,94,0.22)`,
+                            background:"rgba(61,122,40,0.25)",color:C.brand,border:`1px solid ${C.borderBrand}`,
                             cursor:"pointer",fontFamily:F.family}}>✨ AI</button>
                       </div>
                     </Card>
@@ -2009,7 +2024,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
   }
   const[running,setRunning]=useState(null);
   const[elapsed,setElapsed]=useState(0);
-  const[clientId,setClientId]=useState(clients[0]?.id||"");
+  const[clientId,setClientId]=useState((clients[0]?clients[0].id:"")||"");
   const[desc,setDesc]=useState("");
   const[showAdd,setShowAdd]=useState(false);
   const[manualH,setManualH]=useState("");
@@ -2024,7 +2039,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
 
   const startTimer=()=>{
     if(!clientId)return;
-    setRunning({start:Date.now(),clientId,client:client?.name,desc});
+    setRunning({start:Date.now(),clientId,client:(client?client.name:""),desc});
     setElapsed(0);
   };
   const stopTimer=()=>{
@@ -2040,7 +2055,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
   const addManual=()=>{
     if(!clientId||(!manualH&&!manualM))return;
     const dur=(Number(manualH||0)*3600)+(Number(manualM||0)*60);
-    act.addTimeEntry({clientId,client:client?.name,desc:desc||"Manual entry",duration:dur,start:new Date().toISOString(),end:new Date().toISOString()});
+    act.addTimeEntry({clientId,client:(client?client.name:""),desc:desc||"Manual entry",duration:dur,start:new Date().toISOString(),end:new Date().toISOString()});
     setManualH("");setManualM("");setDesc("");setShowAdd(false);
   };
 
@@ -2048,7 +2063,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
     <div style={{display:"flex",flexDirection:"column",gap:S[5]}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:S[4]}}>
         <SCard label="Total hours tracked" value={`${totalH.toFixed(1)}h`} color={C.brand} icon="⏱"/>
-        <SCard label="This week" value={`${timeEntries.filter(e=>{const d=new Date(e.start||Date.now());const now=new Date();const wStart=new Date(now);wStart.setDate(now.getDate()-now.getDay());return d>=wStart;}).reduce((s,e)=>s+(e.duration||0),0)/3600|0}h`} color={C.green} icon="📅"/>
+        <SCard label="This week" value={`${timeEntries.filter(e=>{const d=new Date((e.start||Date.now()));const now=new Date();const wStart=new Date(now);wStart.setDate(now.getDate()-now.getDay());return d>=wStart;}).reduce((s,e)=>s+(e.duration||0),0)/3600|0}h`} color={C.green} icon="📅"/>
         <SCard label="Entries logged" value={timeEntries.length} color={C.purple} icon="📝"/>
       </div>
 
@@ -2063,7 +2078,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
         </div>
         <div style={{display:"flex",alignItems:"center",gap:S[5]}}>
           <div style={{fontSize:44,fontWeight:F.black,color:running?C.green:C.textMuted,fontFamily:F.mono,
-            textShadow:running?`0 0 20px ${C.greenGlow}`:"none",letterSpacing:"-0.02em"}}>
+            ,letterSpacing:"-0.02em"}}>
             {fmtTime(running?Math.floor(elapsed/1000):0)}
           </div>
           <div style={{display:"flex",gap:S[3]}}>
@@ -2078,14 +2093,14 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
 
       {/* Entries */}
       <Card>
-        <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
+        <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
           Time log
         </div>
         {timeEntries.length===0
           ?<Empty icon="⏱" title="No time logged yet" body="Start the timer or add a manual entry."/>
           :[...timeEntries].reverse().map((e,i)=>(
             <div key={e.id} style={{display:"flex",alignItems:"center",gap:S[3],padding:`${S[3]}px ${S[5]}px`,
-              borderBottom:i<timeEntries.length-1?`1px solid ${C.glassBorder}`:"none"}}>
+              borderBottom:i<timeEntries.length-1?"1px solid #1e3d1e":"none"}}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:F.base,color:C.textPrimary,fontWeight:F.medium}}>{e.desc}</div>
                 <div style={{fontSize:F.xs,color:C.textMuted}}>{e.client} · {e.date}</div>
@@ -2094,9 +2109,9 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
                 {fmtTime(e.duration||0)}
               </div>
               <button onClick={()=>act.delTimeEntry(e.id)}
-                style={{background:"none",border:"none",cursor:"pointer",fontSize:13,color:"rgba(255,255,255,0.2)",padding:S[1],transition:"color 0.15s"}}
-                onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.2)"}>🗑</button>
+                style={{background:"none",border:"none",cursor:"pointer",fontSize:13,color:"#2d5c2d",padding:S[1],transition:"color 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.color="#b84f4f"}
+                onMouseLeave={e=>e.currentTarget.style.color="#2d5c2d"}>🗑</button>
             </div>
           ))}
       </Card>
@@ -2139,7 +2154,7 @@ function ExpensesPage({expenses,clients,act,plan,onUpgrade}){
     <div style={{display:"flex",flexDirection:"column",gap:S[5]}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:S[4]}}>
         <SCard label="Total expenses" value={fmt$(total)} color={C.red} icon="💸"/>
-        <SCard label="This month"     value={fmt$(expenses.filter(e=>e.date?.startsWith(today().slice(0,7))).reduce((s,e)=>s+e.amount,0))} color={C.amber} icon="📅"/>
+        <SCard label="This month"     value={fmt$(expenses.filter(e=>e.date&&e.date.startsWith(today().slice(0,7))).reduce((s,e)=>s+e.amount,0))} color={C.amber} icon="📅"/>
         <SCard label="Expense entries" value={expenses.length} color={C.purple} icon="📝"/>
       </div>
       <div style={{display:"flex",justifyContent:"flex-end"}}>
@@ -2165,22 +2180,22 @@ function ExpensesPage({expenses,clients,act,plan,onUpgrade}){
         </Card>
       )}
       <Card>
-        <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>All expenses</div>
+        <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>All expenses</div>
         {expenses.length===0
           ?<Empty icon="💳" title="No expenses yet" body="Track your project costs to see real profit margins."/>
           :[...expenses].reverse().map((e,i)=>(
             <div key={e.id} style={{display:"flex",alignItems:"center",gap:S[3],padding:`${S[3]}px ${S[5]}px`,
-              borderBottom:i<expenses.length-1?`1px solid ${C.glassBorder}`:"none"}}>
-              <span style={{fontSize:18}}>{cats[e.category]?.split(" ")[0]||"📦"}</span>
+              borderBottom:i<expenses.length-1?"1px solid #1e3d1e":"none"}}>
+              <span style={{fontSize:18}}>{(cats[e.category]?cats[e.category].split(" ")[0]:"📦")||"📦"}</span>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:F.base,color:C.textPrimary,fontWeight:F.medium}}>{e.desc}</div>
                 <div style={{fontSize:F.xs,color:C.textMuted}}>{e.client} · {e.category} · {e.date}</div>
               </div>
               <div style={{fontSize:F.base,fontWeight:F.bold,color:C.red}}>{fmt$(e.amount)}</div>
               <button onClick={()=>act.delExpense(e.id)}
-                style={{background:"none",border:"none",cursor:"pointer",fontSize:13,color:"rgba(255,255,255,0.2)",padding:S[1],transition:"color 0.15s"}}
-                onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.2)"}>🗑</button>
+                style={{background:"none",border:"none",cursor:"pointer",fontSize:13,color:"#2d5c2d",padding:S[1],transition:"color 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.color="#b84f4f"}
+                onMouseLeave={e=>e.currentTarget.style.color="#2d5c2d"}>🗑</button>
             </div>
           ))}
       </Card>
@@ -2200,7 +2215,7 @@ function ExpensesPage({expenses,clients,act,plan,onUpgrade}){
             </Sel>
             <div style={{display:"flex",gap:S[3]}}>
               <Btn onClick={()=>setShowAdd(false)} variant="secondary" fullWidth>Cancel</Btn>
-              <Btn onClick={()=>{if(!f.amount)return;act.addExpense({clientId:f.clientId,client:client?.name,desc:f.desc,amount:Number(f.amount),category:f.category,date:f.date});setShowAdd(false);}}
+              <Btn onClick={()=>{if(!f.amount)return;act.addExpense({clientId:f.clientId,client:(client?client.name:""),desc:f.desc,amount:Number(f.amount),category:f.category,date:f.date});setShowAdd(false);}}
                 variant="primary" fullWidth disabled={!f.amount}>Add expense</Btn>
             </div>
           </div>
@@ -2248,9 +2263,9 @@ function TemplatesPage({customTemplates,act,plan,onAI}){
                 </div>
                 {isCustom&&(
                   <button onClick={e=>{e.stopPropagation();act.delTemplate(t.id);}}
-                    style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:"rgba(255,255,255,0.2)",padding:S[1],transition:"color 0.15s"}}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                    onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.2)"}>🗑</button>
+                    style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:"#2d5c2d",padding:S[1],transition:"color 0.15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.color="#b84f4f"}
+                    onMouseLeave={e=>e.currentTarget.style.color="#2d5c2d"}>🗑</button>
                 )}
               </div>
               <div style={{fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>{t.name}</div>
@@ -2258,7 +2273,7 @@ function TemplatesPage({customTemplates,act,plan,onAI}){
                 {t.body.slice(0,120)}…
               </div>
               <div style={{display:"flex",gap:S[2],marginTop:"auto"}}>
-                <Btn onClick={e=>{e.stopPropagation();navigator.clipboard?.writeText(`Subject: ${t.subject}\n\n${t.body}`);}} variant="secondary" size="sm" style={{flex:1}}>📋 Copy</Btn>
+                <Btn onClick={e=>{e.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText(`Subject: ${t.subject}\n\n${t.body}`);}} variant="secondary" size="sm" style={{flex:1}}>📋 Copy</Btn>
               </div>
             </Card>
           );
@@ -2267,11 +2282,11 @@ function TemplatesPage({customTemplates,act,plan,onAI}){
       {preview&&(
         <Modal title={preview.name} onClose={()=>setPreview(null)} width={560}>
           <div style={{display:"flex",flexDirection:"column",gap:S[4]}}>
-            <div style={{...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`}}>
+            <div style={{background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`}}>
               <div style={{fontSize:F.xs,color:C.textMuted,marginBottom:S[1]}}>Subject</div>
               <div style={{fontSize:F.base,fontWeight:F.semibold,color:C.textPrimary}}>{preview.subject}</div>
             </div>
-            <div style={{...glass(0.06,8),borderRadius:R.md,padding:`${S[3]}px ${S[4]}px`}}>
+            <div style={{background:"#0f220f",borderRadius:R.md,border:"1px solid #1e3d1e",padding:`${S[3]}px ${S[4]}px`}}>
               <div style={{fontSize:F.xs,color:C.textMuted,marginBottom:S[1]}}>Body</div>
               <div style={{fontSize:F.base,color:C.textSec,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{preview.body}</div>
             </div>
@@ -2279,7 +2294,7 @@ function TemplatesPage({customTemplates,act,plan,onAI}){
               💡 Replace [Name], [Project], [Amount], [Date] with your actual values before sending.
             </div>
             <div style={{display:"flex",gap:S[3]}}>
-              <Btn onClick={()=>navigator.clipboard?.writeText(`Subject: ${preview.subject}\n\n${preview.body}`)} variant="secondary" fullWidth>📋 Copy template</Btn>
+              <Btn onClick={()=>navigator.clipboard&&navigator.clipboard.writeText(`Subject: ${preview.subject}\n\n${preview.body}`)} variant="secondary" fullWidth>📋 Copy template</Btn>
               <Btn onClick={()=>setPreview(null)} variant="primary" fullWidth>Done</Btn>
             </div>
           </div>
@@ -2365,18 +2380,18 @@ function ReportsPage({clients,invoices,timeEntries,expenses,act,plan,onUpgrade})
 
       {clientProfit.length>0&&(
         <Card>
-          <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:`1px solid ${C.glassBorder}`,fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
+          <div style={{padding:`${S[4]}px ${S[5]}px`,borderBottom:"1px solid #1e3d1e",fontWeight:F.bold,fontSize:F.md,color:C.textPrimary}}>
             Profitability by client
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 100px 100px 80px 100px 80px",gap:S[3],padding:`${S[3]}px ${S[5]}px`,
-            background:"rgba(255,255,255,0.03)",borderBottom:`1px solid ${C.glassBorder}`}}>
+            background:"rgba(255,255,255,0.03)",borderBottom:"1px solid #1e3d1e"}}>
             {["Client","Revenue","Expenses","Hours","Profit","Margin"].map(h=>(
               <div key={h} style={{fontSize:F.xs,fontWeight:F.bold,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.05em"}}>{h}</div>
             ))}
           </div>
           {clientProfit.map((c,i)=>(
             <div key={c.id} style={{display:"grid",gridTemplateColumns:"1fr 100px 100px 80px 100px 80px",gap:S[3],
-              padding:`${S[3]}px ${S[5]}px`,borderBottom:i<clientProfit.length-1?`1px solid ${C.glassBorder}`:"none",alignItems:"center"}}>
+              padding:`${S[3]}px ${S[5]}px`,borderBottom:i<clientProfit.length-1?"1px solid #1e3d1e":"none",alignItems:"center"}}>
               <div style={{display:"flex",alignItems:"center",gap:S[2]}}>
                 <Avt name={c.name} idx={c.avatarIdx||0} size={26}/>
                 <span style={{fontSize:F.base,fontWeight:F.medium,color:C.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</span>
@@ -2407,7 +2422,7 @@ function SettingsPage({auth,plan,onUpgrade,onSimulate,onLogout}){
       <Card style={{padding:S[6]}}>
         <div style={{fontWeight:F.bold,fontSize:F.md,color:C.textPrimary,marginBottom:S[5]}}>Account</div>
         <div style={{display:"flex",alignItems:"center",gap:S[4],marginBottom:S[5]}}>
-          <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${C.brandLight},${C.brandMid})`,
+          <div style={{width:56,height:56,borderRadius:"50%",background:C.brand,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:C.white,fontWeight:F.bold}}>
             {ini(auth.name||"U")}
           </div>
@@ -2439,7 +2454,7 @@ function SettingsPage({auth,plan,onUpgrade,onSimulate,onLogout}){
             "Team seats":  `${cfg.limits.teamSeats} seat${cfg.limits.teamSeats>1?"s":""}`,
           }).map(([k,v])=>(
             <div key={k} style={{display:"flex",justifyContent:"space-between",padding:`${S[2]}px 0`,
-              borderBottom:`1px solid ${C.glassBorder}`,fontSize:F.base}}>
+              borderBottom:"1px solid #1e3d1e",fontSize:F.base}}>
               <span style={{color:C.textSec}}>{k}</span>
               <span style={{color:C.textPrimary,fontWeight:F.medium}}>{v}</span>
             </div>
@@ -2467,7 +2482,7 @@ function SettingsPage({auth,plan,onUpgrade,onSimulate,onLogout}){
             ["New feature announcements",true],
           ].map(([label,on])=>(
             <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-              padding:`${S[2]}px 0`,borderBottom:`1px solid ${C.glassBorder}`}}>
+              padding:`${S[2]}px 0`,borderBottom:"1px solid #1e3d1e"}}>
               <span style={{fontSize:F.base,color:C.textSec}}>{label}</span>
               <div style={{width:36,height:20,borderRadius:R.full,
                 background:on?C.brand:"rgba(255,255,255,0.1)",position:"relative",cursor:"pointer",
@@ -2525,11 +2540,11 @@ function AppRoot({auth,onLogout}){
   };
   return(
     <div style={{display:"flex",minHeight:"100vh",
-      background:"#0c150b",
+      background:C.bg,
       fontFamily:F.family,position:"relative",overflow:"hidden"}}>
-      <div style={{position:"fixed",top:-200,left:-200,width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(122,184,94,0.07) 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",bottom:-300,right:-100,width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(74,122,54,0.05) 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",top:"40%",right:"20%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(212,160,67,0.03) 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",top:-200,left:-200,width:600,height:600,borderRadius:"50%",background:"transparent",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",bottom:-300,right:-100,width:700,height:700,borderRadius:"50%",background:"transparent",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",top:"40%",right:"20%",width:400,height:400,borderRadius:"50%",background:"transparent",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"relative",zIndex:1,display:"flex",width:"100%"}}>
         <Sidebar page={page} onNav={act.setPage} badges={derived.badges}
           plan={s.plan} onUpgrade={upgrade} onLogout={logout}
@@ -2537,7 +2552,7 @@ function AppRoot({auth,onLogout}){
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
           <Topbar page={page} alerts={totalAlerts} plan={s.plan} onUpgrade={upgrade}/>
           <main className="zv-page" style={{flex:1,overflowY:"auto",padding:S[6],paddingBottom:72}}>
-            {page==="dashboard" &&<DashboardPage clients={derived.clientsWithHealth} invoices={invoices} tasks={tasks} activity={activity} derived={derived} onAI={act.setAI} onUpgrade={upgrade} goPage={act.setPage} onboarding={s.onboarding} onDismiss={()=>dispatch({type:"ONBOARD_DISMISS"})} revenueGoal={s.revenueGoal} onSetGoal={v=>dispatch({type:"GOAL_SET",p:v})}/>}
+            {page==="dashboard" &&<DashboardPage clients={derived.clientsWithHealth} invoices={invoices} tasks={tasks} activity={activity} derived={derived} onAI={act.setAI} onUpgrade={upgrade} goPage={act.setPage} onboarding={s.onboarding} onDismiss={()=>dispatch({type:"ONBOARD_DISMISS"})} revenueGoal={s.revenueGoal} onSetGoal={(v)=>dispatch({type:"GOAL_SET",p:v})}/>}
             {page==="clients"   &&<ClientsPage   clients={derived.clientsWithHealth} act={act} onAI={act.setAI} derived={derived} onUpgrade={upgrade}/>}
             {page==="invoices"  &&<InvoicesPage  invoices={invoices} clients={clients} act={act} derived={derived} onUpgrade={upgrade}/>}
             {page==="tasks"     &&<TasksPage     tasks={tasks} clients={clients} act={act}/>}
@@ -2568,57 +2583,42 @@ export default function ClientPulse(){
   const[auth,setAuth]=useState(()=>loadSession());
   const[checking,setChecking]=useState(false);
   const[oauthErr,setOauthErr]=useState("");
-
   useEffect(()=>{
-    // Handle Supabase Google OAuth callback
     const hash=window.location.hash;
     if(!hash.includes("access_token"))return;
     const p=new URLSearchParams(hash.replace("#","?"));
     const token=p.get("access_token");
     if(!token)return;
-
-    // Clean URL immediately
     window.history.replaceState({},document.title,window.location.pathname);
     setChecking(true);
-
-    // Call backend to verify token securely
-    fetch("/api/auth/google/callback",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({access_token:token}),
-    })
-    .then(r=>{
-      if(!r.ok)throw new Error("Server error "+r.status);
-      return r.json();
-    })
+    fetch("/api/auth/google/callback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_token:token})})
+    .then(r=>{if(!r.ok)throw new Error("Server "+r.status);return r.json();})
     .then(data=>{
-      if(!data.token)throw new Error("No session token returned");
-      // Decode JWT payload (no secret needed to read)
-      const parts=data.token.split(".");
-      const pl=JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/")));
-      const authData={id:pl.userId,email:pl.email,name:pl.name,plan:pl.plan||"free"};
-      localStorage.setItem("cp_jwt_v1",data.token);
-      saveSession(authData);
-      setAuth(authData);
+      if(!data.token)throw new Error("No token");
+      const pl=JSON.parse(atob(data.token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+      const a={id:pl.userId,email:pl.email,name:pl.name,plan:pl.plan||"free"};
+      localStorage.setItem("cp_jwt_v1",data.token);saveSession(a);setAuth(a);
     })
-    .catch(e=>{
-      console.error("Google login error:",e.message);
-      setOauthErr("Google sign-in failed. Please try email login or try again.");
-    })
+    .catch(e=>{console.error(e);setOauthErr("Google sign-in failed. Please use email or try again.");})
     .finally(()=>setChecking(false));
   },[]);
-
+  useEffect(()=>{
+    if(!auth)return;
+    const jwt=localStorage.getItem("cp_jwt_v1");if(!jwt)return;
+    fetch("/api/auth/verify",{headers:{Authorization:"Bearer "+jwt}})
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{if(!d||d.error){clearSession();setAuth(null);return;}if(d.plan!==auth.plan){const u={...auth,plan:d.plan};saveSession(u);setAuth(u);}})
+    .catch(()=>{});
+  },[auth&&auth.id]);
   if(checking)return(
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:"linear-gradient(135deg,#05031e,#0d0826)",fontFamily:"Inter,system-ui,sans-serif"}}>
-      <div style={{textAlign:"center",color:"rgba(255,255,255,0.7)"}}>
-        <div style={{fontSize:40,marginBottom:16}}>⚡</div>
-        <div style={{fontSize:15,fontWeight:600,marginBottom:6}}>Signing you in…</div>
-        <div style={{fontSize:12,opacity:0.5}}>Just a moment</div>
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0a1a0a",fontFamily:"'DM Sans',sans-serif"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{width:36,height:36,border:"2px solid #1e3d1e",borderTop:"2px solid #6db84f",borderRadius:"50%",margin:"0 auto 16px",animation:"spin 0.8s linear infinite"}}/>
+        <div style={{color:"#f2ead8",fontSize:14,fontWeight:600}}>Signing you in…</div>
+        <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
       </div>
     </div>
   );
-
   if(!auth)return <AuthScreen onAuth={d=>setAuth(d)} oauthErr={oauthErr}/>;
   return <AppRoot auth={auth} onLogout={()=>{clearSession();setAuth(null);}}/>;
 }
