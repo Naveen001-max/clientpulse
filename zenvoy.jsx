@@ -2078,7 +2078,7 @@ function TimeTrackPage({timeEntries,clients,act,plan,onUpgrade}){
         </div>
         <div style={{display:"flex",alignItems:"center",gap:S[5]}}>
           <div style={{fontSize:44,fontWeight:F.black,color:running?C.green:C.textMuted,fontFamily:F.mono,
-            ,letterSpacing:"-0.02em"}}>
+                                                                                                       letterSpacing:"-0.02em"}}>
             {fmtTime(running?Math.floor(elapsed/1000):0)}
           </div>
           <div style={{display:"flex",gap:S[3]}}>
