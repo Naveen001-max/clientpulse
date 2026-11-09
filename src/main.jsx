@@ -4,6 +4,6 @@ import App from '../zenvoy.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ClientPulse />
+    <App />
   </React.StrictMode>
 )
